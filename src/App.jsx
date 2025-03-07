@@ -5,6 +5,7 @@ import NavBar from './components/NavBar'
 import { useState, useEffect } from 'react'
 import "./index.css"
 import { supabase } from './lib/supabase'
+import { useNavigate } from 'react-router-dom'
 
 const ProtectedRoute = ({ isAuthenticated, redirectPath = '/auth', children }) => {
   if (!isAuthenticated) {
@@ -22,51 +23,76 @@ function Layout() {
   )
 }
 
-function App() {
+function AuthenticatedContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userData, setUserData] = useState(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
-
-    // const getUser = async () =>{
-    //   const { data: { user } } = await supabase.auth.getUser()
-    //  setUserData(user);
-    //   console.log(userData)
-    // }
-
-    // getUser()
-    console.log(userData)
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       setIsAuthenticated(!!session)
+      
+      if (session?.user) {
+        const { data: userProfile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single()
+        
+        setUserData(userProfile)
+      }
     }
 
     checkSession()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log("Auth state changed:", _event, session)
       setIsAuthenticated(!!session)
+      
+      if (session?.user) {
+        const { data: userProfile } = await supabase
+          .from('users')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single()
+        
+        setUserData(userProfile)
+      } else {
+        setUserData(null)
+        if (window.location.pathname !== '/auth') {
+          navigate('/auth')
+        }
+      }
     })
 
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [navigate])
 
   return (
+    <div className="min-h-screen bg-background">
+      {isAuthenticated && <NavBar />}
+      <Routes>
+        <Route 
+          path="/auth" 
+          element={isAuthenticated ? <Navigate to="/" replace /> : <Auth />} 
+        />
+        <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/:username" element={<Home />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </div>
+  )
+}
+
+function App() {
+  return (
     <Router>
-      <div className="min-h-screen bg-background">
-        {isAuthenticated  && (<NavBar/>)}
-        <Routes>
-          <Route 
-            path="/auth" 
-            element={isAuthenticated ? <Navigate to="/" replace /> : <Auth />} 
-          />
-          <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
-            <Route path="/" element={<Home />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Route>
-        </Routes>
-      </div>
+      <AuthenticatedContent />
     </Router>
   )
 }

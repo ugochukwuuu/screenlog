@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from "react-router-dom"
 import {
   DropdownMenu,
@@ -11,14 +11,29 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, Library, List, LogOut } from "lucide-react"
 import { supabase } from "../lib/supabase"
+import { useNavigate } from "react-router-dom"
 
 const NavBar = () => {
+  const navigate = useNavigate();
+  const [loggingOut, setLoggingOut] = useState(false)
+  
   const handleLogout = async () => {
+    console.log("Logging out...")
+    setLoggingOut(true)
     try {
-      await supabase.auth.signOut()
+      // First navigate to auth page immediately
       navigate("/auth")
+      
+      // Then sign out
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      console.log("Successfully logged out")
     } catch (error) {
       console.error("Error logging out:", error)
+      // If there's an error, we might need to force a page reload
+      window.location.href = "/auth"
+    } finally {
+      setLoggingOut(false)
     }
   }
 
