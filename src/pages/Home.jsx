@@ -21,7 +21,7 @@ export function Home() {
           Keep track of all the movies and TV shows you've watched
         </p>
       </div>
-
+     
       <Search onSearch={handleSearch} />
 
       <div className="mt-12">

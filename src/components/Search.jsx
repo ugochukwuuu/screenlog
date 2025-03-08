@@ -2,12 +2,16 @@ import { useState } from "react"
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 import { Search as SearchIcon } from "lucide-react"
+import {SkeletonCard} from "../components/SkeletonCard"
 import { searchMovies } from "../api/movieApi"
 
 function Search({ onSearch }) {
   const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isSearching,setIsSearching] = useState(false);
+
   const [results, setResults] = useState([])
+
 
   const url = import.meta.env.VITE_TVMAZE_URL
   const apiKey = import.meta.env.VITE_TMDB_KEY
@@ -18,6 +22,7 @@ function Search({ onSearch }) {
     if (!query.trim()) return
 
     setIsLoading(true)
+    setIsSearching(true)
     try {
      const response = await searchMovies(query)
      const data = await response.Search
@@ -35,12 +40,14 @@ function Search({ onSearch }) {
       console.error("Error searching movies:", error)
       onSearch([])
     } finally {
+      setIsSearching(false)
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full ">
+    <div className="main-form-cont max-w-2xl mx-auto">
       <form onSubmit={handleSubmit} className="flex gap-2">
         <div className="relative flex-1">
           <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -56,6 +63,15 @@ function Search({ onSearch }) {
           {isLoading ? "Searching..." : "Search"}
         </Button>
       </form>
+    </div>
+
+     {isSearching && (
+      <div className="skeleton-card-container flex flex-row gap-1 justify-center">
+      <SkeletonCard />
+      <SkeletonCard />
+      <SkeletonCard />
+      </div>
+     )}
     </div>
   )
 }

@@ -8,35 +8,38 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Loader } from './Loader'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, Library, List, LogOut } from "lucide-react"
 import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
 
-const NavBar = () => {
+const NavBar = ({ userData }) => {
   const navigate = useNavigate();
-  const [loggingOut, setLoggingOut] = useState(false)
+  const [isLoggingOut, setLoggingOut] = useState(false);
+
   
   const handleLogout = async () => {
     console.log("Logging out...")
     setLoggingOut(true)
     try {
-      // First navigate to auth page immediately
-      navigate("/auth")
-      
-      // Then sign out
       const { error } = await supabase.auth.signOut()
       if (error) throw error
       console.log("Successfully logged out")
     } catch (error) {
       console.error("Error logging out:", error)
-      // If there's an error, we might need to force a page reload
-      window.location.href = "/auth"
+      // Force a reload if the signout fails
+      window.location.reload()
     } finally {
       setLoggingOut(false)
     }
   }
 
+  if(isLoggingOut){
+    return (
+      <Loader/>
+    )
+  }
   return (
     <nav className="border-b">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -46,12 +49,12 @@ const NavBar = () => {
 
         <DropdownMenu>
           <DropdownMenuTrigger className="focus:outline-none flex items-center gap-2">
-      {/* <div className="user-name">
-        <p>Hello, Promise</p>
-      </div> */}
+            <div className="text-sm mr-2">
+              {userData?.name}
+            </div>
             <Avatar className="h-8 w-8 hover:ring-2 hover:ring-primary/50 transition">
               <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>CN</AvatarFallback>
+              <AvatarFallback>{userData?.name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
           
@@ -60,7 +63,7 @@ const NavBar = () => {
             <DropdownMenuSeparator />
             
             <DropdownMenuItem asChild>
-              <Link to="/profile" className="flex items-center cursor-pointer">
+              <Link to={`/${userData?.name}`} className="flex items-center cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </Link>
@@ -85,9 +88,10 @@ const NavBar = () => {
             <DropdownMenuItem 
               className="flex items-center cursor-pointer text-red-500 focus:text-red-500"
               onClick={handleLogout}
+              disabled={isLoggingOut}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
+              <span>{isLoggingOut ? 'Logging out...' : 'Log out'}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

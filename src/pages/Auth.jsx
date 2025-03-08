@@ -17,6 +17,8 @@ export function Auth() {
   const [isLogin, setIsLogin] = useState(true)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const [isSigningIn, setIsSigningIn] = useState(false)
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -25,6 +27,7 @@ export function Auth() {
   })
 
   const handleLogin = async (e) => {
+    setIsLoggingIn(true);
     console.log("Attempting to sign in...")
     const { data, error } = await supabase.auth.signInWithPassword({
       email: formData.email.trim(),
@@ -43,11 +46,13 @@ export function Auth() {
 
     if (userProfile) {
       navigate(`/${userProfile.name}`)
+      setIsLoggingIn(false)
     }
   }
 
   const handleSignup = async (e) => {
     console.log("Signing up the user now")
+    setisSigningIn(true);
     try {
       //first check if the username is available
       //then sign up the user with auth
@@ -67,6 +72,7 @@ export function Auth() {
 
       if (existingUser) {
         throw new Error("Username is already taken")
+        setIsSigningIn(false);
       }
 
       console.log("Username is available, proceeding with sign up...")
