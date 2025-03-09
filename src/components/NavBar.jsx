@@ -28,20 +28,17 @@ const NavBar = ({ userData }) => {
       console.log("Successfully logged out")
     } catch (error) {
       console.error("Error logging out:", error)
-      // Force a reload if the signout fails
-      window.location.reload()
-    } finally {
       setLoggingOut(false)
     }
   }
 
-  if(isLoggingOut){
-    return (
-      <Loader/>
-    )
-  }
   return (
-    <nav className="border-b">
+    <nav className="border-b relative">
+      {isLoggingOut && (
+        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-50">
+          <Loader />
+        </div>
+      )}
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="text-xl font-bold">
           MovieTrackr

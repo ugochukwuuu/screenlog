@@ -3,15 +3,20 @@ import { Link } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import Search from "../components/Search"
 import ShowCard from "../components/ShowCard"
-import NavBar from "../components/NavBar"
+import {SkeletonCard} from "../components/SkeletonCard"
+
 
 export function Home() {
   const [searchResults, setSearchResults] = useState([])
+  const [isSearching, setIsSearching] = useState(false)
 
   const handleSearch = (results) => {
     setSearchResults(results)
   }
 
+  const handleSearchingChange = (searching) =>{
+    setIsSearching(searching)
+  }
   return (
     <div className="flex flex-col items-center min-h-[calc(100vh-8rem)]">
       <div className="container mx-auto px-4 py-8 space-y-8">
@@ -22,14 +27,21 @@ export function Home() {
         </p>
       </div>
      
-      <Search onSearch={handleSearch} />
+      <Search onSearch={handleSearch} onSearchingChange = {handleSearchingChange} />
 
       <div className="mt-12">
-        {searchResults && searchResults.length > 0 ? (
+      {isSearching ? (
+      <div className="skeleton-card-container flex flex-row gap-1 justify-center">
+      <SkeletonCard />
+      <SkeletonCard />
+      <SkeletonCard />
+      </div>
+      ) : (
+        searchResults && searchResults.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {searchResults.map((result) => (
               <ShowCard 
-                key={result.imdbID} 
+                key={result.id} 
                 show={result}
                 isInCollection={false}
               />
@@ -47,7 +59,8 @@ export function Home() {
               </Link>
             </div>
           </div>
-        )}
+        )
+      )}
       </div>
       </div>
     </div>

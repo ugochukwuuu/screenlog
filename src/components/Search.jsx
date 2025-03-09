@@ -2,10 +2,9 @@ import { useState } from "react"
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 import { Search as SearchIcon } from "lucide-react"
-import {SkeletonCard} from "../components/SkeletonCard"
-import { searchMovies } from "../api/movieApi"
+import { searchShows } from "../api/movieApi"
 
-function Search({ onSearch }) {
+function Search({ onSearch, onSearchingChange }) {
   const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSearching,setIsSearching] = useState(false);
@@ -22,32 +21,28 @@ function Search({ onSearch }) {
     if (!query.trim()) return
 
     setIsLoading(true)
-    setIsSearching(true)
+    // setIsSearching(true)
+    onSearchingChange(true);
     try {
-     const response = await searchMovies(query)
-     const data = await response.Search
-    
-     setResults(data)
-      console.log('API returned results:', response.Search)
-      
-      if (results && Array.isArray(results)) {
-        onSearch(data || [])
-      } else {
-        console.error('Invalid results format:', results)
-        onSearch([])
-      }
+      const response = await searchShows(query)
+      const searchResults = response || []
+
+      console.log(searchResults)
+      setResults(searchResults)
+      onSearch(searchResults)
     } catch (error) {
       console.error("Error searching movies:", error)
+      setResults([])
       onSearch([])
     } finally {
-      setIsSearching(false)
+      // setIsSearching(false)
       setIsLoading(false)
+      onSearchingChange(false);
     }
   }
 
   return (
-    <div className="w-full ">
-    <div className="main-form-cont max-w-2xl mx-auto">
+    <div className="w-full max-w-2xl mx-auto">
       <form onSubmit={handleSubmit} className="flex gap-2">
         <div className="relative flex-1">
           <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -62,16 +57,7 @@ function Search({ onSearch }) {
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Searching..." : "Search"}
         </Button>
-      </form>
-    </div>
-
-     {isSearching && (
-      <div className="skeleton-card-container flex flex-row gap-1 justify-center">
-      <SkeletonCard />
-      <SkeletonCard />
-      <SkeletonCard />
-      </div>
-     )}
+      </form>    
     </div>
   )
 }

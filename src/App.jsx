@@ -23,83 +23,62 @@ function AuthenticatedContent() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const checkSession = async () => {
+    let mounted = true
+
+    const handleAuthChange = async (session) => {
+      if (!mounted) return
+
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user) {
+          setIsAuthenticated(false)
+          setUserData(null)
+          return
+        }
+
+        const { data: userProfile, error: profileError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single()
         
-        if (session?.user) {
-          const { data: userProfile, error: profileError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single()
-          
-          if (profileError) {
-            console.error("Error fetching user profile:", profileError)
-            throw profileError
-          }
-  
+        if (profileError) throw profileError
+
+        if (mounted) {
           setIsAuthenticated(true)
           setUserData(userProfile)
-        } else {
+        }
+      } catch (error) {
+        console.error("Auth error:", error)
+        if (mounted) {
           setIsAuthenticated(false)
           setUserData(null)
         }
-      } catch (error) {
-        console.error("Session check error:", error)
-        setIsAuthenticated(false)
-        setUserData(null)
       } finally {
-        setIsLoading(false)
-      }
-    }
-
-    checkSession()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoading(true)
-      
-      const updateState = async () => {
-        try {
-          if (_event === 'SIGNED_OUT') {
-            setIsAuthenticated(false)
-            setUserData(null)
-            setIsLoading(false)
-            navigate('/auth', { replace: true })
-            return
-          }
-  
-          if (session?.user) {
-            const { data: userProfile, error: profileError } = await supabase
-              .from('users')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single()
-            
-            if (profileError) {
-              console.error("Error fetching user profile:", profileError)
-              throw profileError
-            }
-  
-            setIsAuthenticated(true)
-            setUserData(userProfile)
-          } else {
-            setIsAuthenticated(false)
-            setUserData(null)
-          }
-        } catch (error) {
-          console.error("Auth state change error:", error)
-          setIsAuthenticated(false)
-          setUserData(null)
-        } finally {
+        if (mounted) {
           setIsLoading(false)
         }
       }
+    }
 
-      updateState()
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session }}) => {
+      handleAuthChange(session)
+    })
+
+    // Listen for auth changes
+    const { data: { subscription }} = supabase.auth.onAuthStateChange((_event, session) => {
+      if (_event === 'SIGNED_OUT') {
+        setIsAuthenticated(false)
+        setUserData(null)
+        setIsLoading(false)
+        navigate('/auth', { replace: true })
+      } else {
+        handleAuthChange(session)
+      }
     })
 
     return () => {
+      mounted = false
       subscription.unsubscribe()
     }
   }, [navigate])
