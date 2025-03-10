@@ -4,7 +4,7 @@
 import { omdbApi, tvmazeApi } from './api';
 import { supabase } from "@/lib/supabase"
 
-export const searchShows = async (query) =>{
+export const tvmazeApiSearchShows = async (query) =>{
     try{
         console.log("query is ", query)
         const response = await tvmazeApi.get('/search/shows',
@@ -16,6 +16,25 @@ export const searchShows = async (query) =>{
         const shows = response.data.map(item => item.show)
         console.log("Extracted shows:", shows);
         return shows;
+    } catch (error) {
+        console.error('Error searching movies:', error);
+        throw error;
+    }
+}
+export const omdbApiSearchShows = async (query) =>{
+    try{
+        console.log("query is ", query)
+        const response = await omdbApi.get('/',
+            {params:{
+            s: query
+        }})
+        console.log("response is", response)
+
+        const shows = response.data.Search;
+        console.log("Extracted shows:", shows);
+        return shows;
+
+        // return response; 
     } catch (error) {
         console.error('Error searching movies:', error);
         throw error;
@@ -49,13 +68,17 @@ export const getTvShowsDetails = async (query) => {
 }
 
 
-export const getShowEpisodes = async (id) => {
+export const getShowEpisodes = async (title) => {
     try{
-        console.log("get show episodess")
-    const response = await tvmazeApi.get(`/shows/${id}/episodes`);
-    const episodes = response.data;
+        console.log(title)
+    const response = await tvmazeApi.get(`/singlesearch/shows/?q=${title}&embed=episodes`);
+    // const response = await tvmazeApi.get(`/shows/${id}/episodes`);
+
+    const episodes = response.data._embedded.episodes;
+    // console.log("episodes",episodes)
 
     const totalEpisodes = episodes.length;
+    // console.log("total episodes", totalEpisodes)
 
     const episodesPerSeason = episodes.reduce((acc, episode) => {
         const season = episode.season;
@@ -69,6 +92,7 @@ export const getShowEpisodes = async (id) => {
       
       const totalSeasons = Object.keys(episodesPerSeason).length;
 
+        console.log(totalEpisodes, episodesPerSeason, totalSeasons);
         return {totalEpisodes, episodesPerSeason, totalSeasons};
     }
     catch(error){
@@ -77,47 +101,104 @@ export const getShowEpisodes = async (id) => {
     }
 }
 
-export const addShowToCollection = async (show) => {
-    try {
-      // Ensure we have the required fields
-      if (!show.imdbID) {
-        throw new Error('Show is missing imdbID');
-      }
-
-      const genresArray = show.Genre ? show.Genre.split(', ') : [];
-      const releaseYear = show.Year ? parseInt(show.Year.split('–')[0]) : null;
-      const imdbRating = show.imdbRating ? parseFloat(show.imdbRating) : null;
-      const mediaType = show.Type?.toLowerCase() || 'movie';
-      
-      const mediaRecord = {
-        external_id: show.imdbID,
-        title: show.Title || '',
-        type: mediaType,
-        release_year: releaseYear,
-        total_seasons: show.totalSeasons ? parseInt(show.totalSeasons) : null,
-        total_episodes: null, // OMDB API doesn't provide this
-        poster_url: show.Poster || '',
-        plot: show.Plot || '',
-        genres: genresArray,
-        imdb_rating: imdbRating
-      };
-
-      console.log("Attempting to insert media record:", mediaRecord);
-
-      const { data, error } = await supabase
-        .from('media')
-        .insert([mediaRecord])
-        .select();
-  
-      if (error) {
-        console.error('Error adding show to collection:', error);
-        throw error;
-      }
-  
-      console.log('Show added successfully:', data);
-      return data;
-    } catch (error) {
-      console.error('Failed to add show to collection:', error);
-      throw error;
+export const addShowToMediaTable = async (mediaRecord) => {
+  try {
+    console.log("media record",mediaRecord)
+    if (!mediaRecord.external_id) {
+      throw new Error('External ID is required');
     }
-  };
+
+
+    const { data: existingMedia, error: checkError } = await supabase
+      .from('media')
+      .select('*')
+      .eq('external_id', mediaRecord.external_id)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('Error checking existing media:', checkError);
+      return { error: checkError };
+    }
+
+    
+    if (existingMedia) {
+      return { 
+        error: { 
+          message: 'Show already exists in the database',
+          existingShow: existingMedia 
+        } 
+      };
+    }
+
+   
+    const { data: insertedMedia, error: insertError } = await supabase
+      .from('media')
+      .insert([{
+        external_id: mediaRecord.external_id,
+        title: mediaRecord.title,
+        type: mediaRecord.type,
+        release_year: mediaRecord.release_year,
+        total_seasons: mediaRecord.total_seasons,
+        total_episodes: mediaRecord.total_episodes,
+        poster_url: mediaRecord.poster_url,
+        episodes_per_season: mediaRecord.episodes_per_season
+      }])
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Error inserting media:', insertError);
+      return { error: insertError };
+    }
+
+    return { data: insertedMedia };
+  } catch (error) {
+    console.error('Error in addShowToMediaTable:', error);
+    return { error };
+  }
+};
+
+
+export const addShowToUsersCollections = async (mediaResult,id) =>{
+    const { error: userMediaError } = await supabase
+            .from('user_media')
+            .insert([{
+                user_id: id,
+                media_id: mediaResult.data?.media_id,
+                status: 'watching',
+                added_at: new Date().toISOString()
+            }])
+            .single();
+
+        if (userMediaError) {
+            if (userMediaError.code === '23505') { // Unique violation
+                console.log("Show already in user's collection");
+                throw new Error("Show already in your collection");
+            }
+            throw userMediaError;
+        }
+        
+        return "show successfully added to user's table"
+}
+
+export const addShowToWatchList = async (mediaResult,id) => {
+    const { error: userMediaError } = await supabase
+    .from('user_media')
+    .insert([{
+        user_id: id,
+        media_id: mediaResult.data?.media_id,
+        status: 'plan_to_watch',
+        added_at: new Date().toISOString()
+    }])
+    .single();
+
+if (userMediaError) {
+    if (userMediaError.code === '23505') { // Unique violation
+        console.log("Show already in user's collection");
+        throw new Error("Show already in your collection");
+    }
+    throw userMediaError;
+}
+
+return "show successfully added to user's table"
+}

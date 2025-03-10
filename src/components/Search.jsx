@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 import { Search as SearchIcon } from "lucide-react"
-import { searchShows } from "../api/movieApi"
+import { omdbApiSearchShows } from "../api/movieApi"
 
 function Search({ onSearch, onSearchingChange }) {
   const [query, setQuery] = useState("")
@@ -24,7 +24,7 @@ function Search({ onSearch, onSearchingChange }) {
     // setIsSearching(true)
     onSearchingChange(true);
     try {
-      const response = await searchShows(query)
+      const response = await omdbApiSearchShows(query)
       const searchResults = response || []
 
       console.log(searchResults)

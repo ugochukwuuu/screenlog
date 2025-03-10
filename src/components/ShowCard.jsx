@@ -7,45 +7,140 @@
     //but if it's already in the users collections, then they can update it
 
 import { useState } from "react"
-import { addShowToCollection,getShowEpisodes } from "@/api/movieApi"
+import { addShowToMediaTable, getShowEpisodes,addShowToUsersCollections, addShowToWatchList } from "@/api/movieApi"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Button } from "./ui/button"
 import { Star, Plus, Check, ListPlus } from "lucide-react"
-
+import { supabase } from "@/lib/supabase"
 
 const ShowCard = ({ show, isInCollection = false }) => {
 
   const [isHovered, setIsHovered] = useState(false)
   const [isAddingToCollections, setIsAddingToCollections] = useState(false);
-  const [seriesInfo, setSeriesInfo] = useState([])
+  const [seriesEpisodes, setSeriesEpisodes] = useState([]);
 
-  const plainTextSummary = show.summary?.replace(/<[^>]+>/g, '');
 
-  const handleAddToCollection = async (id) => {
-    console.log("i was just clicked")
+  //function to first transform the show no matter the type
+
+  const transformShow = async (show, userId) => {
+    let seriesDetails = null;
+
+    console.log('specific show', show);
+    // First check if show exists and has required properties
+    if (!show) {
+        throw new Error('Show object is undefined');
+    }
+
+    if (!userId) {
+        throw new Error('User ID is required');
+    }
+
+    if (show.Type && show.Type.toLowerCase() === "series") {
+        console.log("fetching the tv details for", show.Title);
+        try {
+            seriesDetails = await getShowEpisodes(show.Title);
+            console.log(seriesDetails.episodesPerSeason)
+        } catch (error) {
+            console.error("Error fetching series details:", error);
+        }
+    }
+
+    const releaseYear = show.Year ? parseInt(show.Year.split(/[-–]/)[0],10) : null;
+
+    const record = {
+        external_id: show.imdbID,
+        title: show.Title || '',
+        type: show.Type || 'series',
+        release_year: releaseYear,
+        total_seasons: seriesDetails ? seriesDetails.totalSeasons : null,
+        total_episodes: seriesDetails ? seriesDetails.totalEpisodes : null,
+        poster_url: show.Poster || show.image?.original || 'https://via.placeholder.com/210x295?text=No+Image',
+        episodes_per_season: seriesDetails ? seriesDetails.episodesPerSeason : null
+    };
+
+    console.log("Transformed record:", record);
+    return record;
+  }
+
+  // const addToUserTable = async ()
+  const handleAddToCollection = async (show) => {
     setIsAddingToCollections(true);
     try {
-      // Log the show object to debug
-      console.log("Show object:", show);
-      
-      if(show.type === "Series") {  // Changed from show.Type to show.type and "series" to "Series"
-        console.log("getting show episode details")
-        const seriesDetails = await getShowEpisodes(id);
-        setSeriesInfo(seriesDetails)
-        console.log("series info",seriesInfo);
-      }
-      
-      // try {
-      //   const addShowToDatabaseResult = await addShowToCollection(show, seriesInfo);
-      //   console.log("Successfully added to collection:", addShowToDatabaseResult);
-      // } catch (error) {
-      //   console.error("Error adding show to database:", error);
-      // }
-      
+
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+            throw new Error('Could not get current user');
+        }
+        if (!user) {
+            throw new Error('No user logged in');
+        }
+
+        // Transform and add show to media table
+        const showRecord = await transformShow(show, user.id);
+        const mediaResult = await addShowToMediaTable(showRecord);
+
+        console.log(mediaResult)
+        if (mediaResult.error) {
+            if (mediaResult.error.existingShow) {
+                // Show exists in media table, proceed to add user-media relationship
+                console.log("Show exists in media table, adding to user's collection");
+            } else {
+                throw new Error(mediaResult.error.message);
+            }
+        }
+
+
+    
+        const addToUserCollections = await addShowToUsersCollections(mediaResult,user.id);
+
+        console.log(addToUserCollections);
+        console.log("Successfully added to collection");
+        
     } catch (error) {
-      console.error("Error in handleAddToCollection:", error);
+        console.error("Error in handleAddToCollection:", error);
+        // You might want to show an error message to the user here
     } finally {
-      setIsAddingToCollections(false);
+        setIsAddingToCollections(false);
+    }
+  }
+  const handleAddToWatchList = async (show) => {
+    setIsAddingToCollections(true);
+    try {
+
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+            throw new Error('Could not get current user');
+        }
+        if (!user) {
+            throw new Error('No user logged in');
+        }
+
+        // Transform and add show to media table
+        const showRecord = await transformShow(show, user.id);
+        const mediaResult = await addShowToMediaTable(showRecord);
+
+        console.log(mediaResult)
+        if (mediaResult.error) {
+            if (mediaResult.error.existingShow) {
+                // Show exists in media table, proceed to add user-media relationship
+                console.log("Show exists in media table, adding to user's collection");
+            } else {
+                throw new Error(mediaResult.error.message);
+            }
+        }
+
+
+    
+        const addToUserCollections = await addShowToWatchList(mediaResult,user.id);
+
+        console.log(addToUserCollections);
+        console.log("Successfully added to collection");
+        
+    } catch (error) {
+        console.error("Error in handleAddToCollection:", error);
+        // You might want to show an error message to the user here
+    } finally {
+        setIsAddingToCollections(false);
     }
   }
 
@@ -59,7 +154,7 @@ const ShowCard = ({ show, isInCollection = false }) => {
       {/* Banner/Poster Section */}
       <div className="relative h-48">
         <img
-            src={show.image?.medium || 'https://via.placeholder.com/210x295?text=No+Image'} 
+            src={show.Poster || 'https://via.placeholder.com/210x295?text=No+Image'} 
           alt={show.Title}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
@@ -69,28 +164,30 @@ const ShowCard = ({ show, isInCollection = false }) => {
         <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-background/80 px-2 py-1 rounded-full">
           <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
           <span className="text-xs font-medium">
-            {show.rating.average || 'N/A'}
+            {show.rating?.average || 'N/A'}
           </span>
         </div>
       </div>
 
       <CardHeader className="space-y-1 pb-3">
       <div className="row flex justify-between">
-        <CardTitle className="text-lg line-clamp-1">{show.name}</CardTitle>
+        <CardTitle className="text-lg line-clamp-1">{show.Title}</CardTitle>
         <div className="bg-primary/80 text-primary-foreground px-2 py-1 rounded-full text-xs font-medium">
-          {show.type || 'TV Series'}
+          {show.Type || 'TV Series'}
         </div>
       </div>
         <p className="text-sm text-muted-foreground">
-          {show.premiered ? new Date(show.premiered).getFullYear() : 'N/A'}
+          {show.Year ?  show.Year : 'N/A'}
         </p>
+
+
       </CardHeader>
 
       <CardContent className="space-y-4">
 
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {plainTextSummary || `${show.type} released in ${show.premiered ? new Date(show.premiered).getFullYear() : 'N/A'}`}
-        </p>
+        {/* <p className="text-sm text-muted-foreground line-clamp-2">
+          {show.summary ? show.summary.replace(/<[^>]+>/g, '') : `${show.type || 'TV Series'} - ${show.status || 'Unknown status'}`}
+        </p> */}
 
 
         <div className="flex flex-col gap-2">
@@ -107,15 +204,16 @@ const ShowCard = ({ show, isInCollection = false }) => {
             <>
               <Button 
                 className="w-full" 
-                onClick={() => handleAddToCollection(show.id)}
+                onClick={() => handleAddToCollection(show)}
+                disabled={isAddingToCollections}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Add to Collection
+                {isAddingToCollections ? 'Adding...' : 'Add to Collection'}
               </Button>
               <Button 
                 variant="outline" 
                 className="w-full" 
-                // onClick={handleAddToTracklist}
+                onClick={handleAddToWatchList}
               >
                 <ListPlus className="mr-2 h-4 w-4" />
                 Add to Watchlist
