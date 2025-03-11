@@ -88,7 +88,7 @@ function AuthenticatedContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background w-full">
       {isAuthenticated && <NavBar userData={userData} />}
       <Routes>
         <Route 

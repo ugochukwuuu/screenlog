@@ -6,19 +6,23 @@
 //then a button to add to collections or add to track lists
     //but if it's already in the users collections, then they can update it
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { addShowToMediaTable, getShowEpisodes,addShowToUsersCollections, addShowToWatchList } from "@/api/movieApi"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Button } from "./ui/button"
 import { Star, Plus, Check, ListPlus } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import AddToCollectionsModal from "./AddToCollectionsModal"
 
 const ShowCard = ({ show, isInCollection = false }) => {
 
+  const [showInfo, setShowInfo] = useState({})
   const [isHovered, setIsHovered] = useState(false)
   const [isAddingToCollections, setIsAddingToCollections] = useState(false);
   const [seriesEpisodes, setSeriesEpisodes] = useState([]);
-
+  const [showModal, setShowModal] = useState(false);
+  
+  
 
   //function to first transform the show no matter the type
 
@@ -75,66 +79,47 @@ const ShowCard = ({ show, isInCollection = false }) => {
             throw new Error('No user logged in');
         }
 
+        setShowModal(true);
         // Transform and add show to media table
         const showRecord = await transformShow(show, user.id);
         const mediaResult = await addShowToMediaTable(showRecord);
 
-        console.log(mediaResult)
+        let insertedData;
+        console.log("media result", mediaResult)
         if (mediaResult.error) {
             if (mediaResult.error.existingShow) {
                 // Show exists in media table, proceed to add user-media relationship
                 console.log("Show exists in media table, adding to user's collection");
+
+                  const { data: existingMedia, error: checkError } = await supabase
+                  .from('media')
+                  .select('*')
+                  .eq('external_id', showRecord.external_id)
+                  .maybeSingle();
+            
+                if (checkError) {
+                  console.error('Error checking existing media:', checkError);
+                  return { error: checkError };
+                }
+
+                console.log("existing media", existingMedia);
+                insertedData = existingMedia;
+                setShowInfo(insertedData);
+                return;
             } else {
                 throw new Error(mediaResult.error.message);
             }
         }
 
+        insertedData = mediaResult.data;
+        console.log("inserted data", insertedData);
+        setShowInfo(insertedData);
+      
 
-    
-        const addToUserCollections = await addShowToUsersCollections(mediaResult,user.id);
+        // const addToUserCollections = await addShowToUsersCollections(mediaResult,user.id);
 
-        console.log(addToUserCollections);
-        console.log("Successfully added to collection");
-        
-    } catch (error) {
-        console.error("Error in handleAddToCollection:", error);
-        // You might want to show an error message to the user here
-    } finally {
-        setIsAddingToCollections(false);
-    }
-  }
-  const handleAddToWatchList = async (show) => {
-    setIsAddingToCollections(true);
-    try {
-
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError) {
-            throw new Error('Could not get current user');
-        }
-        if (!user) {
-            throw new Error('No user logged in');
-        }
-
-        // Transform and add show to media table
-        const showRecord = await transformShow(show, user.id);
-        const mediaResult = await addShowToMediaTable(showRecord);
-
-        console.log(mediaResult)
-        if (mediaResult.error) {
-            if (mediaResult.error.existingShow) {
-                // Show exists in media table, proceed to add user-media relationship
-                console.log("Show exists in media table, adding to user's collection");
-            } else {
-                throw new Error(mediaResult.error.message);
-            }
-        }
-
-
-    
-        const addToUserCollections = await addShowToWatchList(mediaResult,user.id);
-
-        console.log(addToUserCollections);
-        console.log("Successfully added to collection");
+        // console.log(addToUserCollections);
+        // console.log("Successfully added to collection");
         
     } catch (error) {
         console.error("Error in handleAddToCollection:", error);
@@ -146,6 +131,8 @@ const ShowCard = ({ show, isInCollection = false }) => {
 
 
   return (
+    <>
+    {showModal && <AddToCollectionsModal showData={showInfo} setShowModal={setShowModal}  />}
     <Card 
       className="overflow-hidden hover:shadow-lg transition-all duration-300 group"
       onMouseEnter={() => setIsHovered(true)}
@@ -156,7 +143,7 @@ const ShowCard = ({ show, isInCollection = false }) => {
         <img
             src={show.Poster || 'https://via.placeholder.com/210x295?text=No+Image'} 
           alt={show.Title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 z-0"
         />
       
         
@@ -203,26 +190,20 @@ const ShowCard = ({ show, isInCollection = false }) => {
           ) : (
             <>
               <Button 
-                className="w-full" 
+                variant = "primary"
+                className="w-full bg-transparent text-foreground" 
                 onClick={() => handleAddToCollection(show)}
                 disabled={isAddingToCollections}
               >
                 <Plus className="mr-2 h-4 w-4" />
                 {isAddingToCollections ? 'Adding...' : 'Add to Collection'}
               </Button>
-              <Button 
-                variant="outline" 
-                className="w-full" 
-                onClick={handleAddToWatchList}
-              >
-                <ListPlus className="mr-2 h-4 w-4" />
-                Add to Watchlist
-              </Button>
             </>
           )}
         </div>
       </CardContent>
     </Card>
+    </>
   )
 }
 

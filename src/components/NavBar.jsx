@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, Library, List, LogOut } from "lucide-react"
 import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
+import Alert  from './Alert'
 
 const NavBar = ({ userData }) => {
   const navigate = useNavigate();
@@ -25,9 +26,10 @@ const NavBar = ({ userData }) => {
     try {
       const { error } = await supabase.auth.signOut()
       if (error) throw error
-      console.log("Successfully logged out")
+      navigate('/login')
     } catch (error) {
-      console.error("Error logging out:", error)
+      console.error('Error logging out:', error)
+    } finally {
       setLoggingOut(false)
     }
   }
@@ -35,13 +37,15 @@ const NavBar = ({ userData }) => {
   return (
     <nav className="border-b relative">
       {isLoggingOut && (
-        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-50">
+        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-50"> 
           <Loader />
         </div>
       )}
+      
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold">
-          MovieTrackr
+        <Link to="/" className="text-xl font-bold flex flex-nowrap items-center  gap-1 justify-start">
+          trackz
+          <span className="w-2.5 h-2.5 bg-gradient-to-r from-violet-500 to-purple-500 rounded-md"></span>
         </Link>
 
         <DropdownMenu>
@@ -82,14 +86,11 @@ const NavBar = ({ userData }) => {
             
             <DropdownMenuSeparator />
             
-            <DropdownMenuItem 
-              className="flex items-center cursor-pointer text-red-500 focus:text-red-500"
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>{isLoggingOut ? 'Logging out...' : 'Log out'}</span>
-            </DropdownMenuItem>
+            <Alert 
+              text="Log out" 
+              onConfirm={handleLogout}
+            />
+        
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
