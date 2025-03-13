@@ -34,7 +34,7 @@ export function Home() {
     
       <div className="mt-12">
       {isSearching ? (
-      <div className="skeleton-card-container flex flex-row gap-1 justify-center">
+      <div className="skeleton-card-container grid md:grid-cols-2 lg:grid-cols-3 gap-6 w-full ">
       <SkeletonCard />
       <SkeletonCard />
       <SkeletonCard />
