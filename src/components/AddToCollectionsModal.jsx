@@ -8,9 +8,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-const AddToCollectionsModal = ({showData = {}, setShowModal}) => {
-const [status, setStatus ] = useState("Unwatched")
-const [statusOptions, setStatusOptions] = useState(["Unwatched", "Watching", "Plan to watch", "Watched", "Stalled", "Dropped"])
+
+
+const AddToCollectionsModal = ({showData = {}, setShowModal, onAddToCollection}) => {
+const [status, setStatus ] = useState("unwatched")
+const [statusOptions, setStatusOptions] = useState(["unwatched", "watching", "plan to watch", "watched", "stalled", "dropped"])
 const [selectedSeason, setSelectedSeason] = useState(null);
 const [selectedEpisode, setSelectedEpisode] = useState(null);
 const [seasons, setSeasons] = useState([]);
@@ -18,12 +20,12 @@ const [episodes, setEpisodes] = useState([]);
 
 
 const statusColors = {
-  "Unwatched": "#D3D3D3",
-  "Watching": "#3498db",
-  "Plan to watch": "#9b59b6",
-  "Watched": "#2ecc71", 
-  "Stalled": "#f39c12",
-  "Dropped": "#e74c3c"
+  "unwatched": "#D3D3D3",
+  "watching": "#3498db",
+  "plan to watch": "#9b59b6",
+  "watched": "#2ecc71", 
+  "stalled": "#f39c12",
+  "dropped": "#e74c3c"
 };
 const handleStatusChange = (newStatus) => {
   setStatus(newStatus)
@@ -51,6 +53,16 @@ const handleEpisodeChange = (episode) => {
   setSelectedEpisode(episode);
 };
 
+const handleAddToCollection = async () =>{
+  setShowModal(false)
+  onAddToCollection(
+    {
+      selectedSeason: selectedSeason,
+      selectedEpisode: selectedEpisode,
+      status: status
+    }
+  );
+}
   return (
     <div className="h-full fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
     {showData.title && (      
@@ -109,7 +121,7 @@ const handleEpisodeChange = (episode) => {
       </DropdownMenu>
 
         <div className="episodes-selector-cont flex flex-col items-start">
-          {status === "Watching" && showData.type === "series" && (
+          {status === "watching" && showData.type === "series" && (
                   <>
                     {/* Season Selector */}
                     <div className="flex flex-col items-start justify-start">
@@ -155,7 +167,7 @@ const handleEpisodeChange = (episode) => {
                   </>
                 )}
 
-            {status === "Watching" && showData.type === "series" && selectedSeason && selectedEpisode && (
+            {status === "watching" && showData.type === "series" && selectedSeason && selectedEpisode && (
               <div className="w-full bg-black bg-opacity-20 h-2 rounded-full overflow-hidden mt-2">
                 <div 
                   className="bg-[#64E9F8] h-full" 
@@ -166,7 +178,7 @@ const handleEpisodeChange = (episode) => {
               </div>
             )}
           </div>
-        <Button onClick={() => setShowModal(false)}>Done</Button>
+        <Button onClick={() => handleAddToCollection()}>Done</Button>
       </div>
     </div>
     )}

@@ -15,6 +15,8 @@ import { supabase } from "../lib/supabase"
 import { useNavigate } from "react-router-dom"
 import Alert  from './Alert'
 
+const userProfile = JSON.parse(localStorage.getItem('userProfile'));
+
 const NavBar = ({ userData }) => {
   const navigate = useNavigate();
   const [isLoggingOut, setLoggingOut] = useState(false);
@@ -44,15 +46,12 @@ const NavBar = ({ userData }) => {
       
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="text-xl font-bold flex flex-nowrap items-center  gap-1 justify-start">
-          trackz
+          screenlog
           <span className="w-2.5 h-2.5 bg-gradient-to-r from-violet-500 to-purple-500 rounded-md"></span>
         </Link>
 
         <DropdownMenu>
           <DropdownMenuTrigger className="focus:outline-none flex items-center gap-2">
-            <div className="text-sm mr-2">
-              {userData?.name}
-            </div>
             <Avatar className="h-8 w-8 hover:ring-2 hover:ring-primary/50 transition">
               <AvatarImage src="https://github.com/shadcn.png" />
               <AvatarFallback>{userData?.name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
@@ -60,7 +59,9 @@ const NavBar = ({ userData }) => {
           </DropdownMenuTrigger>
           
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              {userProfile?.username} 
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             
             <DropdownMenuItem asChild>

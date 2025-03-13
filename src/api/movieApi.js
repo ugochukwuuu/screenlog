@@ -159,13 +159,15 @@ export const addShowToMediaTable = async (mediaRecord) => {
 };
 
 
-export const addShowToUsersCollections = async (mediaResult,id) =>{
+export const addShowToUsersCollections = async (mediaResult,usersChoice,id) =>{
     const { error: userMediaError } = await supabase
             .from('user_media')
             .insert([{
                 user_id: id,
-                media_id: mediaResult.data?.media_id,
-                status: 'watching',
+                media_id: mediaResult.media_id,
+                status: usersChoice.status.toLowerCase(),
+                current_season: usersChoice.selectedSeason,
+                current_episode: usersChoice.selectedEpisode,
                 added_at: new Date().toISOString()
             }])
             .single();

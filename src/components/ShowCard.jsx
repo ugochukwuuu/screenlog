@@ -15,6 +15,7 @@ import { supabase } from "@/lib/supabase"
 import AddToCollectionsModal from "./AddToCollectionsModal"
 
 const ShowCard = ({ show, isInCollection = false }) => {
+  const user = JSON.parse(localStorage.getItem('userProfile'));
 
   const [showInfo, setShowInfo] = useState({})
   const [isHovered, setIsHovered] = useState(false)
@@ -26,7 +27,7 @@ const ShowCard = ({ show, isInCollection = false }) => {
 
   //function to first transform the show no matter the type
 
-  const transformShow = async (show, userId) => {
+  const transformShow = async (show) => {
     let seriesDetails = null;
 
     console.log('specific show', show);
@@ -34,11 +35,6 @@ const ShowCard = ({ show, isInCollection = false }) => {
     if (!show) {
         throw new Error('Show object is undefined');
     }
-
-    if (!userId) {
-        throw new Error('User ID is required');
-    }
-
     if (show.Type && show.Type.toLowerCase() === "series") {
         console.log("fetching the tv details for", show.Title);
         try {
@@ -71,21 +67,15 @@ const ShowCard = ({ show, isInCollection = false }) => {
     setIsAddingToCollections(true);
     try {
 
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError) {
-            throw new Error('Could not get current user');
-        }
-        if (!user) {
-            throw new Error('No user logged in');
-        }
+       
 
         setShowModal(true);
         // Transform and add show to media table
-        const showRecord = await transformShow(show, user.id);
+        const showRecord = await transformShow(show);
         const mediaResult = await addShowToMediaTable(showRecord);
 
         let insertedData;
-        console.log("media result", mediaResult)
+        // console.log("media result", mediaResult)
         if (mediaResult.error) {
             if (mediaResult.error.existingShow) {
                 // Show exists in media table, proceed to add user-media relationship
@@ -115,12 +105,6 @@ const ShowCard = ({ show, isInCollection = false }) => {
         console.log("inserted data", insertedData);
         setShowInfo(insertedData);
       
-
-        // const addToUserCollections = await addShowToUsersCollections(mediaResult,user.id);
-
-        // console.log(addToUserCollections);
-        // console.log("Successfully added to collection");
-        
     } catch (error) {
         console.error("Error in handleAddToCollection:", error);
         // You might want to show an error message to the user here
@@ -130,9 +114,21 @@ const ShowCard = ({ show, isInCollection = false }) => {
   }
 
 
+  const handleFinalAddToCollection = async (usersChoice) => {
+    console.log('selected season:', usersChoice.selectedSeason)
+    console.log("Selected episode:", usersChoice.selectedEpisode);
+    console.log('status:', usersChoice.status);
+    console.log('user id:', user.user_id);
+
+    console.log(showInfo)
+    const addToUserCollections = await addShowToUsersCollections (showInfo,usersChoice,user.user_id);
+
+    console.log(addToUserCollections);
+
+  } 
   return (
     <>
-    {showModal && <AddToCollectionsModal showData={showInfo} setShowModal={setShowModal}  />}
+    {showModal && <AddToCollectionsModal showData={showInfo} setShowModal={setShowModal}    onAddToCollection={handleFinalAddToCollection}  />}
     <Card 
       className="overflow-hidden hover:shadow-lg transition-all duration-300 group"
       onMouseEnter={() => setIsHovered(true)}

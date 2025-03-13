@@ -3,10 +3,13 @@ import { Auth } from './pages/Auth'
 import { Home } from './pages/Home'
 import NavBar from './components/NavBar'
 import { Loader } from './components/Loader'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, createContext } from 'react'
 import "./index.css"
 import { supabase } from './lib/supabase'
 import { useNavigate } from 'react-router-dom'
+
+
+const UserCollectionContext = createContext();
 
 const ProtectedRoute = ({ isAuthenticated, redirectPath = '/auth', children }) => {
   if (!isAuthenticated) {
@@ -46,6 +49,8 @@ function AuthenticatedContent() {
         if (mounted) {
           setIsAuthenticated(true)
           setUserData(userProfile)
+
+          localStorage.setItem('userProfile', JSON.stringify(userProfile));
         }
       } catch (error) {
         console.error("Auth error:", error)
@@ -77,10 +82,13 @@ function AuthenticatedContent() {
       }
     })
 
+
+
     return () => {
       mounted = false
       subscription.unsubscribe()
     }
+    
   }, [navigate])
 
   if (isLoading) {
@@ -106,10 +114,30 @@ function AuthenticatedContent() {
 }
 
 function App() {
+  const [userCollection, setUserCollection] = useState([]);
+
+  const user = JSON.parse(localStorage.getItem('userProfile'));
+  const user_id = user.user_id;
+
+  useEffect(()=>{
+    const userCollection = async () => {
+      const { data, error } = await supabase
+        .from('user_media')
+        .select('*')
+        .eq('user_id', user_id)
+      if (error) throw error
+      setUserCollection(data)
+    }
+
+    userCollection()
+
+  },[user_id])
   return (
+    <UserCollectionContext.Provider value = {(userCollection, setUserCollection)}>
     <Router>
       <AuthenticatedContent />
     </Router>
+    </UserCollectionContext.Provider>
   )
 }
 

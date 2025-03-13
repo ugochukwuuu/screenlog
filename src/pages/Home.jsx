@@ -22,7 +22,7 @@ export function Home() {
       <div className="container  px-4 py-8 space-y-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">Welcome to<span className="bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent ml-1">
-            trackz</span>
+            screenlog</span>
           </h1>
           <p className="text-xl text-muted-foreground font-light leading-relaxed mb-4">
   Keep track of all the movies and TV shows you've watched
