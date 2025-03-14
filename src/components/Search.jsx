@@ -12,9 +12,7 @@ function Search({ onSearch, onSearchingChange }) {
   const [results, setResults] = useState([])
 
 
-  const url = import.meta.env.VITE_TVMAZE_URL
-  const apiKey = import.meta.env.VITE_TMDB_KEY
-  const readAccessToken = import.meta.env.VITE_TMDB_READ_ACCESS_TOKEN
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -54,7 +52,7 @@ function Search({ onSearch, onSearchingChange }) {
             className="pl-10"
           />
         </div>
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={isLoading} >
           {isLoading ? "Searching..." : "Search"}
         </Button>
       </form>    

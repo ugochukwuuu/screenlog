@@ -9,7 +9,7 @@ import { supabase } from './lib/supabase'
 import { useNavigate } from 'react-router-dom'
 
 
-const UserCollectionContext = createContext();
+export const UserCollectionContext = createContext();
 
 const ProtectedRoute = ({ isAuthenticated, redirectPath = '/auth', children }) => {
   if (!isAuthenticated) {
@@ -117,23 +117,29 @@ function App() {
   const [userCollection, setUserCollection] = useState([]);
 
   const user = JSON.parse(localStorage.getItem('userProfile'));
-  const user_id = user.user_id;
+  const user_id = user?.user_id;
 
   useEffect(()=>{
-    const userCollection = async () => {
+    const fetchUserCollection = async () => {
+      if (!user_id) return;
+      
       const { data, error } = await supabase
         .from('user_media')
         .select('*')
         .eq('user_id', user_id)
-      if (error) throw error
+      if (error) {
+        console.error("Error fetching user collection:", error);
+        return;
+      }
       setUserCollection(data)
+      console.log("user collection fetched:", data)
     }
 
-    userCollection()
+    fetchUserCollection()
 
   },[user_id])
   return (
-    <UserCollectionContext.Provider value = {(userCollection, setUserCollection)}>
+    <UserCollectionContext.Provider value={{ userCollection, setUserCollection }}>
     <Router>
       <AuthenticatedContent />
     </Router>

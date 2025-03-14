@@ -19,13 +19,22 @@ const [seasons, setSeasons] = useState([]);
 const [episodes, setEpisodes] = useState([]);
 
 
+// const statusColors = {
+//   "unwatched": "#D3D3D3",
+//   // "unwatched": "#808080", 
+//   "watching": "#3498db",
+//   "plan to watch": "#9b59b6",
+//   "watched": "#2ecc71", 
+//   "stalled": "#f39c12",
+//   "dropped": "#e74c3c"
+// };
 const statusColors = {
-  "unwatched": "#D3D3D3",
-  "watching": "#3498db",
-  "plan to watch": "#9b59b6",
-  "watched": "#2ecc71", 
-  "stalled": "#f39c12",
-  "dropped": "#e74c3c"
+  "unwatched": "#555555",      
+  "watching": "#5DADE2",       
+  "plan to watch": "#F2E7FB",  
+  "watched": "#2ecc71",        
+  "stalled": "#f39c12",        
+  "dropped": "#e74c3c"         
 };
 const handleStatusChange = (newStatus) => {
   setStatus(newStatus)

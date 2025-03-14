@@ -168,6 +168,7 @@ export const addShowToUsersCollections = async (mediaResult,usersChoice,id) =>{
                 status: usersChoice.status.toLowerCase(),
                 current_season: usersChoice.selectedSeason,
                 current_episode: usersChoice.selectedEpisode,
+                imdb_id: mediaResult.external_id,
                 added_at: new Date().toISOString()
             }])
             .single();
