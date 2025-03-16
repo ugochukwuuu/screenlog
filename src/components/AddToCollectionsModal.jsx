@@ -1,4 +1,4 @@
-import {React, useState, useEffect} from 'react'
+import {React, useState, useEffect, useContext} from 'react'
 import { Button } from './ui/button'
 import {X} from 'lucide-react'
 import {ArrowDown} from 'lucide-react'
@@ -8,34 +8,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Skeleton } from './ui/skeleton'
+import {SkeletonCard} from "../components/SkeletonCard"
+import { addShowToUsersCollections, updateShowToUsersCollections } from '@/api/movieApi'
+import { UserCollectionContext } from '../App'
+import { statusColors } from "@/constants/colors"
 
-
-const AddToCollectionsModal = ({showData = {}, setShowModal, onAddToCollection}) => {
+const AddToCollectionsModal = ({showData = {}, setShowModal, inUserCollection, userId, showAlreadyInCollection}) => {
 const [status, setStatus ] = useState("unwatched")
-const [statusOptions, setStatusOptions] = useState(["unwatched", "watching", "plan to watch", "watched", "stalled", "dropped"])
+const [statusOptions] = useState(["unwatched", "watching", "plan to watch", "watched", "stalled", "dropped"])
 const [selectedSeason, setSelectedSeason] = useState(null);
 const [selectedEpisode, setSelectedEpisode] = useState(null);
 const [seasons, setSeasons] = useState([]);
 const [episodes, setEpisodes] = useState([]);
+const [isLoading, setIsLoading] = useState(false);
+const {userCollection, setUserCollection} = useContext(UserCollectionContext);
 
-
-// const statusColors = {
-//   "unwatched": "#D3D3D3",
-//   // "unwatched": "#808080", 
-//   "watching": "#3498db",
-//   "plan to watch": "#9b59b6",
-//   "watched": "#2ecc71", 
-//   "stalled": "#f39c12",
-//   "dropped": "#e74c3c"
-// };
-const statusColors = {
-  "unwatched": "#555555",      
-  "watching": "#5DADE2",       
-  "plan to watch": "#F2E7FB",  
-  "watched": "#2ecc71",        
-  "stalled": "#f39c12",        
-  "dropped": "#e74c3c"         
-};
 const handleStatusChange = (newStatus) => {
   setStatus(newStatus)
 }
@@ -51,30 +39,79 @@ useEffect(() => {
       setSelectedEpisode(1);
     }
   }
+
+  if(inUserCollection){
+    console.log(showAlreadyInCollection)
+    setSelectedSeason(showAlreadyInCollection.current_season)
+    setSelectedEpisode(showAlreadyInCollection.current_episode)
+    setStatus(showAlreadyInCollection.status)
+  }
 }, [selectedSeason, showData]);
 
 const handleSeasonChange = (season) => {
   setSelectedSeason(season);
-  setSelectedEpisode(1); // Reset episode when season changes
+  setSelectedEpisode(1);
 };
 
 const handleEpisodeChange = (episode) => {
   setSelectedEpisode(episode);
 };
 
+const handleUpdateCollection = async () =>{
+  const {current_season, current_episode, status:currentStatus} = showAlreadyInCollection;
+  if(selectedSeason == current_season && 
+    selectedEpisode == current_episode &&
+    status == currentStatus
+  ){
+    console.log("you didn't change anything")
+    setShowModal()
+    return;
+  }
+
+  const updateToUserCollections = await updateShowToUsersCollections (showData,{
+    selectedSeason: selectedSeason,
+    selectedEpisode: selectedEpisode,
+    status: status
+  },userId);
+
+  const requestStatus = updateToUserCollections.success;
+  const requestData = updateToUserCollections.showData;
+  if (updateToUserCollections.success === true) {
+
+    setUserCollection(prevCollection => 
+      prevCollection.map(show => {
+        if (show.imdb_id === requestData.external_id || show.external_id === requestData.external_id) {
+          return {
+            ...show, 
+            ...requestData
+          };
+        }
+
+        return show;
+      })
+    );
+    
+    setShowModal(false);
+  }
+}
+
 const handleAddToCollection = async () =>{
-  setShowModal(false)
-  onAddToCollection(
-    {
-      selectedSeason: selectedSeason,
-      selectedEpisode: selectedEpisode,
-      status: status
-    }
-  );
+  const addToUserCollections = await addShowToUsersCollections(showData,{
+    selectedSeason: selectedSeason,
+    selectedEpisode: selectedEpisode,
+    status: status
+  },userId);
+
+  const requestStatus = addToUserCollections.success;
+  const requestData = addToUserCollections.showData;
+  if(requestStatus === true){
+    setUserCollection(prev=> [...prev, requestData])
+    setShowModal()
+  }
 }
   return (
     <div className="h-full fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-    {showData.title && (      
+    {showData.title ? (      
     <div className="relative bg-gradient-to-r from-violet-500 to-purple-500  p-6 rounded-lg shadow-2xl w-[400px] flex flex-col items-start">
     <div className='flex  justify-between w-full'>
       <h1 className="text-3xl font-bold text-white mb-6">{showData.title}</h1>
@@ -187,10 +224,13 @@ const handleAddToCollection = async () =>{
               </div>
             )}
           </div>
-        <Button onClick={() => handleAddToCollection()}>Done</Button>
+        <Button onClick={() => inUserCollection ? handleUpdateCollection() : handleAddToCollection()}>Done</Button>
+       
       </div>
     </div>
-    )}
+    ) : <div className="h-full fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <Skeleton className="w-[400px] aspect-[2/1]  rounded-xl bg-white" />
+    </div>}
   </div>
   )
 }

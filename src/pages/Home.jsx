@@ -17,6 +17,46 @@ export function Home() {
   const handleSearchingChange = (searching) =>{
     setIsSearching(searching)
   }
+
+  // const dummyShowData = [
+  //   {
+  //     Title: "The prestige",
+  //     Type: "series",
+  //     Year: "2004",
+  //     Poster: 'src/assets/dummy-pic.jpg'
+  //   },
+  //   {
+  //     Title: "The prestige",
+  //     Type: "movie",
+  //     Year: "2004",
+  //     Poster: 'src/assets/dummy-pic.jpg'
+  //   },
+  //   {
+  //     Title: "The prestige",
+  //     Type: "animation",
+  //     Year: "2004",
+  //     Poster: 'src/assets/dummy-pic.jpg'
+  //   },
+  //   {
+  //     Title: "The prestige",
+  //     Type: "animation",
+  //     Year: "2004",
+  //     Poster: 'src/assets/dummy-pic.jpg'
+  //   },
+  //   {
+  //     Title: "The prestige",
+  //     Type: "animation",
+  //     Year: "2004",
+  //     Poster: 'src/assets/dummy-pic.jpg'
+  //   },
+  //   {
+  //     Title: "The prestige",
+  //     Type: "animation",
+  //     Year: "2004",
+  //     Poster: 'src/assets/dummy-pic.jpg'
+  //   }
+  // ]
+
   return (
     <div className="flex flex-col items-center min-h-[calc(100vh-8rem)]">
       <div className="container  px-4 py-8 space-y-8">
@@ -41,7 +81,7 @@ export function Home() {
       </div>
       ) : (
         searchResults && searchResults.length > 0 ? (
-          <div className="grid grid-cols-1 min-[548px]:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] max-w-[1200px] mx-auto gap-6 justify-center">
             {searchResults.map((result,index) => (
               <ShowCard 
                 key={index} 
@@ -56,6 +96,13 @@ export function Home() {
           </div>
         )
       )}
+
+
+        {/* <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] max-w-[1200px] mx-auto gap-6 justify-center">
+    {dummyShowData.map((item, index) => (
+      <ShowCard key={index} show={item} />
+    ))}
+  </div> */}
       </div>
       </div>
     </div>

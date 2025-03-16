@@ -151,7 +151,7 @@ export const addShowToMediaTable = async (mediaRecord) => {
       return { error: insertError };
     }
 
-    return { data: insertedMedia };
+    return { data: insertedMedia,  };
   } catch (error) {
     console.error('Error in addShowToMediaTable:', error);
     return { error };
@@ -160,7 +160,7 @@ export const addShowToMediaTable = async (mediaRecord) => {
 
 
 export const addShowToUsersCollections = async (mediaResult,usersChoice,id) =>{
-    const { error: userMediaError } = await supabase
+    const { data:showData,error: userMediaError } = await supabase
             .from('user_media')
             .insert([{
                 user_id: id,
@@ -171,7 +171,8 @@ export const addShowToUsersCollections = async (mediaResult,usersChoice,id) =>{
                 imdb_id: mediaResult.external_id,
                 added_at: new Date().toISOString()
             }])
-            .single();
+            .single()
+            .select();
 
         if (userMediaError) {
             if (userMediaError.code === '23505') { // Unique violation
@@ -180,9 +181,29 @@ export const addShowToUsersCollections = async (mediaResult,usersChoice,id) =>{
             }
             throw userMediaError;
         }
-        
-        return "show successfully added to user's table"
+        console.log(showData)
+        return {success: true,showData};
 }
+
+export const updateShowToUsersCollections = async (mediaResult,usersChoice,id) =>{
+    
+const { data:showData, error } = await supabase
+.from('user_media')
+.update({
+    status: usersChoice.status.toLowerCase(),
+    current_season: usersChoice.selectedSeason,
+    current_episode: usersChoice.selectedEpisode
+})
+.eq('imdb_id', mediaResult.external_id)
+.select()
+
+if (error) {
+    console.error('Error updating user media:', error);
+    throw error;
+}
+console.log(showData)
+return {success: true,showData};
+} 
 
 export const addShowToWatchList = async (mediaResult,id) => {
     const { error: userMediaError } = await supabase
