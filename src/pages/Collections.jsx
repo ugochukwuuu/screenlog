@@ -140,7 +140,7 @@ useEffect(()=>{
     </DropdownMenu>
     
       {filteredUserShows && Object.keys(filteredUserShows).length > 0 ? (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,120px))] ml-auto gap-6">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] ml-auto gap-6">
           {Object.values(filteredUserShows).map(show => (
             <CollectionShowCard 
               key={show.showData.media_id} 

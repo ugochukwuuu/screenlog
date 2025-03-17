@@ -100,9 +100,18 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
               </div>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent>
+            <DropdownMenuContent 
+              className="max-h-[200px] overflow-y-auto bg-white rounded-md shadow-lg"
+              align="center"
+              side="top"
+              sideOffset={5}
+            >
               {statusOptions.map((option) => (
-                <DropdownMenuItem key={option} onSelect={() => handleStatusChange(option)}>
+                <DropdownMenuItem 
+                  key={option} 
+                  onSelect={() => handleStatusChange(option)}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                >
                   <span 
                     style={{ 
                       backgroundColor: statusColors[option], 
@@ -133,9 +142,18 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
                   </div>
                 </DropdownMenuTrigger>
 
-                <DropdownMenuContent>
+                <DropdownMenuContent 
+                  className="max-h-[200px] overflow-y-auto bg-white rounded-md shadow-lg"
+                  align="center"
+                  side="top"
+                  sideOffset={5}
+                >
                   {Array.from({ length: show.total_seasons }, (_, i) => i + 1).map((season) => (
-                    <DropdownMenuItem key={season} onSelect={() => handleSeasonChange(season)}>
+                    <DropdownMenuItem 
+                      key={season} 
+                      onSelect={() => handleSeasonChange(season)}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
                       Season {season}
                     </DropdownMenuItem>
                   ))}
@@ -154,9 +172,18 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
                   </div>
                 </DropdownMenuTrigger>
 
-                <DropdownMenuContent>
+                <DropdownMenuContent 
+                  className="max-h-[200px] overflow-y-auto bg-white rounded-md shadow-lg"
+                  align="center"
+                  side="top"
+                  sideOffset={5}
+                >
                   {episodes.map((episode) => (
-                    <DropdownMenuItem key={episode} onSelect={() => handleEpisodeChange(episode)}>
+                    <DropdownMenuItem 
+                      key={episode} 
+                      onSelect={() => handleEpisodeChange(episode)}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
                       Episode {episode}
                     </DropdownMenuItem>
                   ))}
@@ -166,7 +193,9 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
           </div>
         )}
 
-        <div className="flex justify-end w-full mt-4">
+        <div className="flex justify-between w-full mt-4">
+        <Button>Remove from collection</Button>
+
           <Button
             onClick={handleUpdateCollection}
             className="bg-white text-purple-600 hover:bg-gray-100"

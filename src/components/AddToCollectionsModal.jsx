@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from './ui/skeleton'
-import {SkeletonCard} from "../components/SkeletonCard"
 import { addShowToUsersCollections, updateShowToUsersCollections } from '@/api/movieApi'
 import { UserCollectionContext } from '../App'
 import { statusColors } from "@/constants/colors"
@@ -29,6 +28,7 @@ const handleStatusChange = (newStatus) => {
 }
 
 useEffect(() => {
+  console.log('this is the showdata',showData)
   if (selectedSeason && showData.episodes_per_season) {
     const episodeCount = showData.episodes_per_season[selectedSeason] || 0;
     const episodesList = Array.from({ length: episodeCount }, (_, i) => i + 1);
@@ -41,12 +41,12 @@ useEffect(() => {
   }
 
   if(inUserCollection){
-    console.log(showAlreadyInCollection)
+    // console.log(showAlreadyInCollection)
     setSelectedSeason(showAlreadyInCollection.current_season)
     setSelectedEpisode(showAlreadyInCollection.current_episode)
     setStatus(showAlreadyInCollection.status)
   }
-}, [selectedSeason, showData]);
+}, [ showData]); 
 
 const handleSeasonChange = (season) => {
   setSelectedSeason(season);
@@ -63,7 +63,7 @@ const handleUpdateCollection = async () =>{
     selectedEpisode == current_episode &&
     status == currentStatus
   ){
-    console.log("you didn't change anything")
+    // console.log("you didn't change anything")
     setShowModal()
     return;
   }
@@ -181,7 +181,11 @@ const handleAddToCollection = async () =>{
                           </div>
                         </DropdownMenuTrigger>
 
-                        <DropdownMenuContent>
+                        <DropdownMenuContent
+                        className="max-h-[200px] overflow-y-auto bg-white rounded-md shadow-lg"
+                        align="center"
+                        side="top"
+                        sideOffset={5}>
                           {Array.from({ length: showData.total_seasons }, (_, i) => i + 1).map((season) => (
                             <DropdownMenuItem key={season} onSelect={() => handleSeasonChange(season)}>
                               Season {season}
@@ -230,8 +234,11 @@ const handleAddToCollection = async () =>{
        
       </div>
     </div>
-    ) : <div className="h-full fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    ) : <div className="h-full fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ">
+    <div className="flex items-end flex-col justify-center">
+    <X className="cursor-pointer text-white " onClick={() => setShowModal(false)} size = {23}/>
       <Skeleton className="w-[400px] aspect-[2/1]  rounded-xl bg-white" />
+      </div>
     </div>}
   </div>
   )
