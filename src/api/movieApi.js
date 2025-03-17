@@ -143,7 +143,7 @@ export const addShowToMediaTable = async (mediaRecord) => {
         poster_url: mediaRecord.poster_url,
         episodes_per_season: mediaRecord.episodes_per_season
       }])
-      .select()
+      .select('*')
       .single();
 
     if (insertError) {
@@ -171,8 +171,8 @@ export const addShowToUsersCollections = async (mediaResult,usersChoice,id) =>{
                 imdb_id: mediaResult.external_id,
                 added_at: new Date().toISOString()
             }])
-            .single()
-            .select();
+            .select('*')
+            .single();
 
         if (userMediaError) {
             if (userMediaError.code === '23505') { // Unique violation
@@ -185,25 +185,31 @@ export const addShowToUsersCollections = async (mediaResult,usersChoice,id) =>{
         return {success: true,showData};
 }
 
-export const updateShowToUsersCollections = async (mediaResult,usersChoice,id) =>{
-    
-const { data:showData, error } = await supabase
-.from('user_media')
-.update({
-    status: usersChoice.status.toLowerCase(),
-    current_season: usersChoice.selectedSeason,
-    current_episode: usersChoice.selectedEpisode
-})
-.eq('imdb_id', mediaResult.external_id)
-.select()
+export const updateShowToUsersCollections = async (mediaResult, usersChoice, id) => {
+    try {
+        const { data: showData, error } = await supabase
+            .from('user_media')
+            .update({
+                status: usersChoice.status,
+                current_season: usersChoice.selectedSeason,
+                current_episode: usersChoice.selectedEpisode
+            })
+            .eq('imdb_id', mediaResult.external_id)
+            .eq('user_id', id)
+            .select()
+            .single();
 
-if (error) {
-    console.error('Error updating user media:', error);
-    throw error;
+        if (error) {
+            console.error('Error updating user media:', error);
+            return { success: false, error };
+        }
+
+        return { success: true, showData };
+    } catch (error) {
+        console.error('Error in updateShowToUsersCollections:', error);
+        return { success: false, error };
+    }
 }
-console.log(showData)
-return {success: true,showData};
-} 
 
 export const addShowToWatchList = async (mediaResult,id) => {
     const { error: userMediaError } = await supabase
@@ -214,6 +220,7 @@ export const addShowToWatchList = async (mediaResult,id) => {
         status: 'plan_to_watch',
         added_at: new Date().toISOString()
     }])
+    .select('*')
     .single();
 
 if (userMediaError) {

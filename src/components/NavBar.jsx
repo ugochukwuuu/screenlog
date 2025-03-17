@@ -65,14 +65,14 @@ const NavBar = ({ userData }) => {
             <DropdownMenuSeparator />
             
             <DropdownMenuItem asChild>
-              <Link to={`/${userData?.name}`} className="flex items-center cursor-pointer">
+              <Link to={`/${userProfile?.username}`} className="flex items-center cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </Link>
             </DropdownMenuItem>
             
             <DropdownMenuItem asChild>
-              <Link to="/collections" className="flex items-center cursor-pointer">
+              <Link to={`/${userProfile?.username}/collections`} className="flex items-center cursor-pointer">
                 <Library className="mr-2 h-4 w-4" />
                 <span>My Collections</span>
               </Link>

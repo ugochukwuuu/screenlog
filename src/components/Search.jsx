@@ -4,7 +4,7 @@ import { Button } from "./ui/button"
 import { Search as SearchIcon } from "lucide-react"
 import { omdbApiSearchShows } from "../api/movieApi"
 
-function Search({ onSearch, onSearchingChange }) {
+function Search({ onSearch, onSearchingChange,initialQuery = '' }) {
   const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSearching,setIsSearching] = useState(false);
@@ -19,7 +19,6 @@ function Search({ onSearch, onSearchingChange }) {
     if (!query.trim()) return
 
     setIsLoading(true)
-    // setIsSearching(true)
     onSearchingChange(true);
     try {
       const response = await omdbApiSearchShows(query)
@@ -27,13 +26,13 @@ function Search({ onSearch, onSearchingChange }) {
 
       console.log(searchResults)
       setResults(searchResults)
-      onSearch(searchResults)
+      onSearch(searchResults,query)
     } catch (error) {
       console.error("Error searching movies:", error)
       setResults([])
-      onSearch([])
+      onSearch([],query)
     } finally {
-      // setIsSearching(false)
+      setIsSearching(false)
       setIsLoading(false)
       onSearchingChange(false);
     }

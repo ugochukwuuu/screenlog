@@ -1,17 +1,47 @@
-import { useState } from "react"
-import { Link } from "react-router-dom"
+import { useState,useEffect } from "react"
+import { Link, useSearchParams } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import Search from "../components/Search"
 import ShowCard from "../components/ShowCard"
 import {SkeletonCard} from "../components/SkeletonCard"
+import { omdbApiSearchShows } from "../api/movieApi"
 
 
 export function Home() {
   const [searchResults, setSearchResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  const handleSearch = (results) => {
+  useEffect(()=>{
+    const urlQuery = searchParams.get('q');
+    if(urlQuery){
+      performSearch(urlQuery)
+    }
+  },[])
+
+  const performSearch = async (query) =>{
+    if(!query.trim()) return;
+
+    setIsSearching(true);
+
+    try{
+      const response = await omdbApiSearchShows(query)
+      const searchResults = response || []
+
+      setSearchResults(searchResults);
+    }
+    catch(error){
+      console.error('Error searching for shows:', error);
+      setSearchResults([])
+    }
+    finally{
+      setIsSearching(false)
+    }
+  }
+  const handleSearch = (results,query) => {
     setSearchResults(results)
+
+    setSearchParams({q:query})
   }
 
   const handleSearchingChange = (searching) =>{
@@ -69,7 +99,7 @@ export function Home() {
 </p>
       </div>
      
-      <Search onSearch={handleSearch} onSearchingChange = {handleSearchingChange} />
+      <Search onSearch={handleSearch} onSearchingChange = {handleSearchingChange} initialQuery = {searchParams.get('q') || ''} />
 
     
       <div className="mt-12">

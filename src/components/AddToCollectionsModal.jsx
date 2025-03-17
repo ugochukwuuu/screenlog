@@ -109,6 +109,7 @@ const handleAddToCollection = async () =>{
     setShowModal()
   }
 }
+
   return (
     <div className="h-full fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
     {showData.title ? (      
@@ -118,7 +119,6 @@ const handleAddToCollection = async () =>{
       <X className="cursor-pointer text-black " onClick={() => setShowModal(false)} size = {20}/>
     </div>
       
-
 
       <div className="flex items-center justify-between w-full text-white">
 
@@ -139,6 +139,7 @@ const handleAddToCollection = async () =>{
             <ArrowDown className="w-4 h-4" />
           </div>
         </DropdownMenuTrigger>
+
 
         <DropdownMenuContent>
 
@@ -224,6 +225,7 @@ const handleAddToCollection = async () =>{
               </div>
             )}
           </div>
+
         <Button onClick={() => inUserCollection ? handleUpdateCollection() : handleAddToCollection()}>Done</Button>
        
       </div>
@@ -234,6 +236,7 @@ const handleAddToCollection = async () =>{
   </div>
   )
 }
+
 function calculateProgress(showData, currentSeason, currentEpisode) {
   if (!showData || !showData.episodes_per_season || !currentSeason || !currentEpisode) {
     return 0;
@@ -257,4 +260,5 @@ function calculateProgress(showData, currentSeason, currentEpisode) {
   
   return Math.round((watchedEpisodes / totalEpisodes) * 100);
 }
+
 export default AddToCollectionsModal

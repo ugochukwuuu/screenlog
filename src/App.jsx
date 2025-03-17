@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { Auth } from './pages/Auth'
 import { Home } from './pages/Home'
+import Collections  from './pages/Collections'
 import NavBar from './components/NavBar'
 import { Loader } from './components/Loader'
 import { useState, useEffect, createContext } from 'react'
@@ -101,12 +102,14 @@ function AuthenticatedContent() {
       <Routes>
         <Route 
           path="/auth" 
-          element={isAuthenticated ? <Navigate to="/" replace /> : <Auth />} 
+          element={isAuthenticated ? <Navigate to="/search" replace /> : <Auth />} 
         />
         <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
-          <Route path="/" element={<Home userData={userData} />} />
+          <Route path = "/" element ={<Navigate to = "/search" replace/>}/>
+          <Route path="/search" element={<Home userData={userData} />} />
           <Route path="/:username" element={<Home userData={userData} />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path = "/:username/collections" element = {<Collections/>}/>
+          <Route path="*" element={<Navigate to="/search" replace />} />
         </Route>
       </Routes>
     </div>
@@ -115,34 +118,54 @@ function AuthenticatedContent() {
 
 function App() {
   const [userCollection, setUserCollection] = useState([]);
-
   const user = JSON.parse(localStorage.getItem('userProfile'));
   const user_id = user?.user_id;
 
-  useEffect(()=>{
+  useEffect(() => {
+    let mounted = true;
+
     const fetchUserCollection = async () => {
       if (!user_id) return;
       
-      const { data, error } = await supabase
-        .from('user_media')
-        .select('*')
-        .eq('user_id', user_id)
-      if (error) {
+      try {
+        const { data, error } = await supabase
+          .from('user_media')
+          .select('*')
+          .eq('user_id', user_id)
+
+        if (error) throw error;
+
+        console.log(data)
+        setUserCollection(data || []);
+      } catch (error) {
         console.error("Error fetching user collection:", error);
-        return;
       }
-      setUserCollection(data)
-      console.log("user collection fetched:", data)
-    }
+    };
 
-    fetchUserCollection()
+    fetchUserCollection();
 
-  },[user_id])
+    // Subscribe to changes in user_media table
+    const subscription = supabase
+      .channel('user_media_changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_media',
+        filter: `user_id=eq.${user_id}`
+      }, fetchUserCollection)
+      .subscribe();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [user_id]);
+
   return (
     <UserCollectionContext.Provider value={{ userCollection, setUserCollection }}>
-    <Router>
-      <AuthenticatedContent />
-    </Router>
+      <Router>
+        <AuthenticatedContent />
+      </Router>
     </UserCollectionContext.Provider>
   )
 }
