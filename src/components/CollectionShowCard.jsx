@@ -34,7 +34,7 @@ const CollectionShowCard = ({ show, userShowData }) => {
             <img
               src={show.poster_url || 'src/assets/no-img.svg'} 
               alt={show.title}
-              className="flex flex-col w-full h-[300px] bg-white rounded-lg shadow-md overflow-hidden
+              className="flex flex-col w-full h-[200px] bg-white rounded-lg shadow-md overflow-hidden
                object-cover transition-transform duration-300 group-hover:scale-105 z-0"
             />
           

@@ -44,7 +44,7 @@ const NavBar = ({ userData }) => {
         </div>
       )}
       
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="container h-16 flex items-center justify-between">
         <Link to="/" className="text-xl font-bold flex flex-nowrap items-center  gap-1 justify-start">
           screenlog
           <span className="w-2.5 h-2.5 bg-gradient-to-r from-violet-500 to-purple-500 rounded-md"></span>

@@ -111,7 +111,7 @@ export function Home() {
       </div>
       ) : (
         searchResults && searchResults.length > 0 ? (
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] max-w-[1200px] mx-auto gap-6 justify-center">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,120px))] ml-auto gap-6">
             {searchResults.map((result,index) => (
               <ShowCard 
                 key={index} 

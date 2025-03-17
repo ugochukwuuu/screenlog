@@ -138,7 +138,7 @@ const ShowCard = ({ show, isInCollection = false }) => {
         <img
             src={show.Poster !== 'N/A' ? show.Poster || show.poster_url : 'src/assets/no-img.svg'} 
           alt={show.Title || show.title}
-         className="flex flex-col w-full h-[300px] bg-white rounded-lg shadow-md overflow-hidden
+         className="flex flex-col w-full h-[200px] bg-white rounded-lg shadow-md overflow-hidden
           object-cover transition-transform duration-300 group-hover:scale-105 z-0"
         />
       
