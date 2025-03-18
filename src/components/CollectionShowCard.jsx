@@ -68,6 +68,7 @@ const CollectionShowCard = ({ show, userShowData }) => {
             <span className="text-[1rem] font-medium">{userShowData.status}</span>
           </div>
 
+          {userShowData.rating && (
           <div className="flex flex-row items-center justify-center">
           <p>
             {userShowData.rating}
@@ -79,6 +80,7 @@ const CollectionShowCard = ({ show, userShowData }) => {
                   }}
                   strokeWidth={1.5} size={19}/>
           </div>
+          )}
         </div>
       </div>
     </>

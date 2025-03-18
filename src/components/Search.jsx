@@ -21,7 +21,7 @@ function Search({ onSearch, onSearchingChange,initialQuery = '' }) {
     setIsLoading(true)
     onSearchingChange(true);
     try {
-      const response = await omdbApiSearchShows(query)
+      const response = await omdbApiSearchShows(query.trim())
       const searchResults = response || []
 
       console.log(searchResults)

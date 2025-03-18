@@ -40,19 +40,19 @@ export function Auth() {
     // Get user profile to get username
     const { data: userProfile } = await supabase
       .from('users')
-      .select('name')
+      .select('username')
       .eq('user_id', data.user.id)
       .single()
 
     if (userProfile) {
-      navigate(`/${userProfile.name}`)
+      navigate(`/${userProfile.username}`)
       setIsLoggingIn(false)
     }
   }
 
   const handleSignup = async (e) => {
     console.log("Signing up the user now")
-    setisSigningIn(true);
+    setIsSigningIn(true);
     try {
       //first check if the username is available
       //then sign up the user with auth
@@ -84,12 +84,9 @@ export function Auth() {
         }
       })
 
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      let { data, error : signUpError } = await supabase.auth.signUp({
         email: formData.email.trim(),
         password: formData.password,
-        options: {
-          emailRedirectTo: window.location.origin
-        }
       })
       
       console.log("Sign up response:", { data, error: signUpError })
@@ -112,8 +109,8 @@ export function Auth() {
         const { data: profileData, error: profileError } = await supabase
           .from('users')
           .insert({
-            name: formData.username,
-            email: user.email,
+            username: formData.username,  
+            email: user.email.trim(),
             user_id: user.id,
           })
           .select()
@@ -123,7 +120,7 @@ export function Auth() {
           throw profileError
         }
 
-        console.log("User profile created successfully:", profileData)
+        // console.log("User profile created successfully:", profileData)
         
       } catch (error) {
         console.error("User profile creation failed:", error)

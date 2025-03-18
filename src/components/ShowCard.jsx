@@ -178,6 +178,7 @@ const ShowCard = ({ show, isInCollection = false }) => {
             <span className="text-[1rem] font-medium ">{specificUserShowStatus.status}</span> 
           </div>
 
+          {specificUserShowStatus.rating && (
           <div className="flex flex-row items-center justify-center">
           <p>
             {specificUserShowStatus.rating}
@@ -188,7 +189,9 @@ const ShowCard = ({ show, isInCollection = false }) => {
                   stroke:  "yellow",
                   }}
                   strokeWidth={1.5} size={19}/>
+
           </div>
+          )}
           </div>
         )}
       </div>
