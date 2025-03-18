@@ -233,3 +233,18 @@ if (userMediaError) {
 
 return "show successfully added to user's table"
 }
+
+export const removeShowFromUsersCollections = async (media_id, id) => {
+    const { error } = await supabase
+    .from('user_media')
+    .delete()
+    .eq('imdb_id', media_id)
+    .eq('user_id', id);
+
+    if (error) {
+        console.error('Error removing show from user collection:', error);
+        return { success: false, error };
+    }
+
+    return { success: true };
+}

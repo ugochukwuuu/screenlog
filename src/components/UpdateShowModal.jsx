@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { updateShowToUsersCollections } from '@/api/movieApi'
+import { removeShowFromUsersCollections, updateShowToUsersCollections } from '@/api/movieApi'
 import { UserCollectionContext } from '../App'
 import { statusColors } from "@/constants/colors"
 
@@ -18,6 +18,7 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
   const [selectedEpisode, setSelectedEpisode] = useState(userShowData.current_episode)
   const [episodes, setEpisodes] = useState([])
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isRemoving, setIsRemoving] = useState(false)
   const {userCollection, setUserCollection} = useContext(UserCollectionContext)
 
   const handleStatusChange = (newStatus) => {
@@ -44,11 +45,16 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
   const handleUpdateCollection = async () => {
     setIsUpdating(true)
     try {
-      const updateResult = await updateShowToUsersCollections(
-        { external_id: userShowData.imdb_id },
-        { selectedSeason, selectedEpisode, status },
-        userId
-      )
+      const showWithExternalId = {
+        ...show,
+        external_id: userShowData.imdb_id
+      }
+
+      const updateResult = await updateShowToUsersCollections(showWithExternalId, {
+        selectedSeason,
+        selectedEpisode,
+        status
+      }, userId)
 
       if (updateResult.success) {
         setUserCollection(prevCollection => 
@@ -70,6 +76,22 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
       console.error("Error updating show:", error)
     } finally {
       setIsUpdating(false)
+    }
+  }
+
+  const handleRemoveShow = async () =>{
+    setIsRemoving(true)
+    try{
+      const removeShow = await removeShowFromUsersCollections(userShowData.imdb_id,userId)
+      if(removeShow.success){
+        setUserCollection(prevCollection => prevCollection.filter(
+          item => item.imdb_id !== userShowData.imdb_id))
+        setShowModal(false)
+      }
+    } catch (error) {
+      console.error("Error removing show:", error)
+    } finally {
+      setIsRemoving(false)
     }
   }
 
@@ -194,7 +216,10 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
         )}
 
         <div className="flex justify-between w-full mt-4">
-        <Button>Remove from collection</Button>
+        <Button
+        onClick={handleRemoveShow}
+        disabled={isRemoving}
+        >{isRemoving? 'Removing show...': 'Remove show'}</Button>
 
           <Button
             onClick={handleUpdateCollection}

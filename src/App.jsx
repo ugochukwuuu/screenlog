@@ -135,7 +135,6 @@ function App() {
 
         if (error) throw error;
 
-        console.log(data)
         setUserCollection(data || []);
       } catch (error) {
         console.error("Error fetching user collection:", error);

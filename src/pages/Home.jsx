@@ -104,7 +104,7 @@ export function Home() {
     
       <div className="mt-12">
       {isSearching ? (
-      <div className="grid grid-cols-1 min-[548px]:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] ml-auto gap-6">
       <SkeletonCard />
       <SkeletonCard />
       <SkeletonCard />
