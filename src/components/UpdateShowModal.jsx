@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext} from 'react'
 import { Button } from './ui/button'
-import {X, ArrowDown} from 'lucide-react'
+import {X, ArrowDown,Star} from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,13 +19,24 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
   const [episodes, setEpisodes] = useState([])
   const [isUpdating, setIsUpdating] = useState(false)
   const [isRemoving, setIsRemoving] = useState(false)
+
+const [selectedRating, setSelectedRating] = useState(userShowData.rating)
+const [totalRatings] = useState([1,2,3,4,5])
+
+
   const {userCollection, setUserCollection} = useContext(UserCollectionContext)
 
   const handleStatusChange = (newStatus) => {
     setStatus(newStatus)
   }
 
+  const handleRatingChange = (rate)=>{
+    setSelectedRating(rate)
+  }
+
+  
   useEffect(() => {
+    console.log("user show data", userShowData)
     if (selectedSeason && show.episodes_per_season) {
       const episodeCount = show.episodes_per_season[selectedSeason] || 0
       const episodesList = Array.from({ length: episodeCount }, (_, i) => i + 1)
@@ -53,6 +64,7 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
       const updateResult = await updateShowToUsersCollections(showWithExternalId, {
         selectedSeason,
         selectedEpisode,
+        rating: status === "watched" ? selectedRating : null,
         status
       }, userId)
 
@@ -64,6 +76,7 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
                 ...item,
                 current_season: selectedSeason,
                 current_episode: selectedEpisode,
+                rating: selectedRating,
                 status: status
               }
             }
@@ -97,13 +110,13 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
 
   return (
     <div className="h-full fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="relative bg-gradient-to-r from-violet-500 to-purple-500 p-6 rounded-lg shadow-2xl w-[400px] flex flex-col items-start">
+      <div className="relative bg-gradient-to-r from-violet-500 to-purple-500 p-6 rounded-lg shadow-2xl w-[400px] flex flex-col items-start mx-2">
         <div className='flex justify-between w-full'>
           <h1 className="text-3xl font-bold text-white mb-6">{show.title}</h1>
           <X className="cursor-pointer text-black" onClick={() => setShowModal(false)} size={20}/>
         </div>
 
-        <div className="flex items-center justify-between w-full text-white mb-4">
+        <div className="flex items-center flex-wrap justify-between w-full text-white mb-4">
           <DropdownMenu>
             <DropdownMenuTrigger>
               <div className="flex items-center justify-center gap-1 text-white">
@@ -149,6 +162,24 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {status === "watched" && (
+              <div className="rating flex gap-1 flex-row items-center justify-center">
+                {totalRatings.map((item,index)=>(
+                  <>
+                  <Star
+                  key={index} 
+                  style={{
+                  fill: selectedRating >= item ? "yellow" : "white",
+                  stroke: selectedRating >= item ? "yellow" : "white",
+                  }}
+                  onClick={()=> handleRatingChange(item)} 
+                  strokeWidth={1.5} />
+                  </>
+                ))}
+              </div>
+            )}
+
         </div>
 
         {status === "watching" && show.type === "series" && (
@@ -214,6 +245,7 @@ const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
             </div>
           </div>
         )}
+      
 
         <div className="flex justify-between w-full mt-4">
         <Button

@@ -8,14 +8,13 @@ import AddToCollectionsModal from "./AddToCollectionsModal"
 import { UserCollectionContext } from "../App"
 import { PlusCircle, FilePenLine } from 'lucide-react';
 import { statusColors } from "@/constants/colors"
-
 const ShowCard = ({ show, isInCollection = false }) => {
   const user = JSON.parse(localStorage.getItem('userProfile'));
   const { userCollection, setUserCollection } = useContext(UserCollectionContext);
 
   useEffect(() => {
     const checkIfShowIsInCollection = () => {
-      console.log(userCollection)
+      // console.log(userCollection)
       if (!show?.imdbID) return;
       const isInCollection = userCollection.some(item => item.imdb_id === show.imdbID);
       setIsInUserCollection(isInCollection);
@@ -24,7 +23,7 @@ const ShowCard = ({ show, isInCollection = false }) => {
         console.log(userShowStatus);
         setSpecificUserShowStatus(userShowStatus);
       }
-      console.log(`Show ${show.Title} (${show.imdbID}) ${isInCollection ? 'is' : 'is not'} in collection`);
+      // console.log(`Show ${show.Title} (${show.imdbID}) ${isInCollection ? 'is' : 'is not'} in collection`);
     }
     checkIfShowIsInCollection(); 
   },[userCollection, show.imdbID])
@@ -171,11 +170,25 @@ const ShowCard = ({ show, isInCollection = false }) => {
 
       </div>
     </Card>
-    <div className="flex flex-row justify-between items-center">
+    <div className="">
         {isInUserCollection && (
+          <div className="flex flex-row gap-1 items-center justify-between">
           <div className="flex flex-row gap-1 items-center justify-center">
-          <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor:statusColors[specificUserShowStatus.status]}}></span>
+            <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor:statusColors[specificUserShowStatus.status]}}></span>
             <span className="text-[1rem] font-medium ">{specificUserShowStatus.status}</span> 
+          </div>
+
+          <div className="flex flex-row items-center justify-center">
+          <p>
+            {specificUserShowStatus.rating}
+          </p>
+            <Star
+                  style={{
+                  fill: "yellow",
+                  stroke:  "yellow",
+                  }}
+                  strokeWidth={1.5} size={19}/>
+          </div>
           </div>
         )}
       </div>

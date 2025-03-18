@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Card, CardTitle } from "./ui/card"
 import { FilePenLine } from 'lucide-react'
+import {Star} from "lucide-react"
 import { statusColors } from "@/constants/colors"
 import UpdateShowModal from "./UpdateShowModal"
 
@@ -60,10 +61,23 @@ const CollectionShowCard = ({ show, userShowData }) => {
             </div>
           </div>
         </Card>
+
         <div className="flex flex-row justify-between items-center mt-2">
           <div className="flex flex-row gap-1 items-center">
             <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: statusColors[userShowData.status]}}></span>
             <span className="text-[1rem] font-medium">{userShowData.status}</span>
+          </div>
+
+          <div className="flex flex-row items-center justify-center">
+          <p>
+            {userShowData.rating}
+          </p>
+            <Star
+                  style={{
+                  fill: "yellow",
+                  stroke:  "yellow",
+                  }}
+                  strokeWidth={1.5} size={19}/>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import {React, useState, useEffect, useContext} from 'react'
 import { Button } from './ui/button'
 import {X} from 'lucide-react'
-import {ArrowDown} from 'lucide-react'
+import {ArrowDown,Star} from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,11 @@ const [selectedSeason, setSelectedSeason] = useState(null);
 const [selectedEpisode, setSelectedEpisode] = useState(null);
 const [seasons, setSeasons] = useState([]);
 const [episodes, setEpisodes] = useState([]);
+
+const [selectedRating, setSelectedRating] = useState(null)
+const [totalRatings] = useState([1,2,3,4,5])
+
+
 const [isLoading, setIsLoading] = useState(false);
 const {userCollection, setUserCollection} = useContext(UserCollectionContext);
 
@@ -27,8 +32,13 @@ const handleStatusChange = (newStatus) => {
   setStatus(newStatus)
 }
 
+const handleRatingChange = (rate)=>{
+  setSelectedRating(rate)
+}
+
+
 useEffect(() => {
-  console.log('this is the showdata',showData)
+  // console.log('this is the showdata',showData)
   if (selectedSeason && showData.episodes_per_season) {
     const episodeCount = showData.episodes_per_season[selectedSeason] || 0;
     const episodesList = Array.from({ length: episodeCount }, (_, i) => i + 1);
@@ -40,11 +50,12 @@ useEffect(() => {
     }
   }
 
+  console.log("showAlreadyInCollection",showAlreadyInCollection)
   if(inUserCollection){
-    // console.log(showAlreadyInCollection)
     setSelectedSeason(showAlreadyInCollection.current_season)
     setSelectedEpisode(showAlreadyInCollection.current_episode)
     setStatus(showAlreadyInCollection.status)
+    setSelectedRating(showAlreadyInCollection.rating)
   }
 }, [ showData]); 
 
@@ -58,12 +69,13 @@ const handleEpisodeChange = (episode) => {
 };
 
 const handleUpdateCollection = async () =>{
-  const {current_season, current_episode, status:currentStatus} = showAlreadyInCollection;
+  const {current_season, current_episode, status:currentStatus, rating} = showAlreadyInCollection;
   if(selectedSeason == current_season && 
     selectedEpisode == current_episode &&
+    selectedRating == rating &&
     status == currentStatus
   ){
-    // console.log("you didn't change anything")
+    console.log("you didn't change anything")
     setShowModal()
     return;
   }
@@ -71,7 +83,8 @@ const handleUpdateCollection = async () =>{
   const updateToUserCollections = await updateShowToUsersCollections (showData,{
     selectedSeason: selectedSeason,
     selectedEpisode: selectedEpisode,
-    status: status
+    status: status,
+    rating: status === "watched" ? selectedRating : null
   },userId);
 
   const requestStatus = updateToUserCollections.success;
@@ -99,7 +112,8 @@ const handleAddToCollection = async () =>{
   const addToUserCollections = await addShowToUsersCollections(showData,{
     selectedSeason: selectedSeason,
     selectedEpisode: selectedEpisode,
-    status: status
+    status: status,
+    rating: status === "watched" ? selectedRating : null
   },userId);
 
   const requestStatus = addToUserCollections.success;
@@ -110,21 +124,23 @@ const handleAddToCollection = async () =>{
   }
 }
 
+
+
   return (
     <div className="h-full fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
     {showData.title ? (      
-    <div className="relative bg-gradient-to-r from-violet-500 to-purple-500  p-6 rounded-lg shadow-2xl w-[400px] flex flex-col items-start">
+    <div className="relative bg-gradient-to-r from-violet-500 to-purple-500  p-6 rounded-lg shadow-2xl w-[400px] flex flex-col items-start mx-2">
     <div className='flex  justify-between w-full'>
       <h1 className="text-3xl font-bold text-white mb-6">{showData.title}</h1>
       <X className="cursor-pointer text-black " onClick={() => setShowModal(false)} size = {20}/>
     </div>
       
 
-      <div className="flex items-center justify-between w-full text-white">
+    <div className="flex items-center flex-wrap justify-between w-full text-white">
 
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <div className="flex items-center justify-center gap-1 text-white">
+          <div className="flex  items-center justify-center gap-1 text-white">
           <span 
             style={{ 
               backgroundColor: statusColors[status], 
@@ -170,7 +186,7 @@ const handleAddToCollection = async () =>{
         <div className="episodes-selector-cont flex flex-col items-start">
           {status === "watching" && showData.type === "series" && (
                   <>
-                    {/* Season Selector */}
+                    
                     <div className="flex flex-col items-start justify-start">
                       <p className="text-white">Current Season:</p>
                       <DropdownMenu>
@@ -226,6 +242,24 @@ const handleAddToCollection = async () =>{
                     width: `${calculateProgress(showData, selectedSeason, selectedEpisode)}%` 
                   }}
                 />
+              </div>
+            )}
+
+            {status === "watched" && (
+              <div className="rating flex gap-1 flex-row items-center justify-center">
+                {totalRatings.map((item,index)=>(
+                  <>
+
+                  <Star
+                  key={index} 
+                  style={{
+                  fill: selectedRating >= item ? "yellow" : "white",
+                  stroke: selectedRating >= item ? "yellow" : "white",
+                  }}
+                  onClick={()=> handleRatingChange(item)} 
+                  strokeWidth={1.5} />
+                  </>
+                ))}
               </div>
             )}
           </div>

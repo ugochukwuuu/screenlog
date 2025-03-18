@@ -169,6 +169,7 @@ export const addShowToUsersCollections = async (mediaResult,usersChoice,id) =>{
                 current_season: usersChoice.selectedSeason,
                 current_episode: usersChoice.selectedEpisode,
                 imdb_id: mediaResult.external_id,
+                rating: usersChoice.rating,
                 added_at: new Date().toISOString()
             }])
             .select('*')
@@ -192,7 +193,8 @@ export const updateShowToUsersCollections = async (mediaResult, usersChoice, id)
             .update({
                 status: usersChoice.status,
                 current_season: usersChoice.selectedSeason,
-                current_episode: usersChoice.selectedEpisode
+                current_episode: usersChoice.selectedEpisode,
+                rating: usersChoice.rating
             })
             .eq('imdb_id', mediaResult.external_id)
             .eq('user_id', id)
