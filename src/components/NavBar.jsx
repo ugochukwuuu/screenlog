@@ -56,6 +56,9 @@ const NavBar = ({ userData }) => {
 
         <DropdownMenu>
           <DropdownMenuTrigger className="focus:outline-none flex items-center gap-2">
+        <p className='font-bold '>
+        {userData?.username}
+        </p>
             <Avatar className="h-8 w-8 hover:ring-2 hover:ring-primary/50 transition">
               <AvatarImage src="https://github.com/shadcn.png" />
               <AvatarFallback>{userData?.name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
@@ -63,31 +66,31 @@ const NavBar = ({ userData }) => {
           </DropdownMenuTrigger>
           
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
+            {/* <DropdownMenuLabel>
               {userData?.username} 
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator /> */}
             
-            <DropdownMenuItem asChild>
-              <Link to={`/${userData?.username}`} className="flex items-center cursor-pointer">
+            {/* <DropdownMenuItem asChild>
+              <Link to={`/${userProfile?.username}`} className="flex items-center cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </Link>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             
             <DropdownMenuItem asChild>
-              <Link to={`/${userData?.username}/collections`} className="flex items-center cursor-pointer">
+              <Link to={`/${userProfile?.username}/collections`} className="flex items-center cursor-pointer">
                 <Library className="mr-2 h-4 w-4" />
                 <span>My Collections</span>
               </Link>
             </DropdownMenuItem>
             
-            <DropdownMenuItem asChild>
+            {/* <DropdownMenuItem asChild>
               <Link to="/watchlist" className="flex items-center cursor-pointer">
                 <List className="mr-2 h-4 w-4" />
                 <span>Watchlist</span>
               </Link>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             
             <DropdownMenuSeparator />
             
