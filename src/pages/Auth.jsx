@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Card,
   CardContent,
@@ -11,14 +12,21 @@ import {
   CardTitle,
 } from "../components/ui/card"
 import { supabase } from "../lib/supabase"
+import { cn } from "@/lib/utils"
+
+import { FaGoogle } from "react-icons/fa";
+import { FaRegEye } from "react-icons/fa";
+import { FaRegEyeSlash } from "react-icons/fa";
+
 
 export function Auth() {
   const navigate = useNavigate()
-  const [isLogin, setIsLogin] = useState(true)
+  const [isSignUp, setIsSignUp] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [isSigningIn, setIsSigningIn] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -26,6 +34,12 @@ export function Auth() {
     confirmPassword: "",
   })
 
+  const handleGoogleAuth = async ()=>{
+    console.log("googling")
+    let { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google'
+})
+  }
   const handleLogin = async (e) => {
     setIsLoggingIn(true);
     console.log("Attempting to sign in...")
@@ -58,7 +72,7 @@ export function Auth() {
       //then sign up the user with auth
       //then manually insert the users detail into the users table
 
-      console.log("Checking username availability...")
+      console.log("Checking username availability...", formData.username)
       const { data: existingUser, error: checkError } = await supabase
         .from('users')
         .select('username')
@@ -74,7 +88,7 @@ export function Auth() {
         throw new Error("Username is already taken")
         setIsSigningIn(false);
       }
-
+      console.log("existing user", existingUser   )
       console.log("Username is available, proceeding with sign up...")
       console.log("Signup payload:", {
         email: formData.email.trim(),
@@ -147,7 +161,7 @@ export function Auth() {
         throw new Error("Please fill in all fields")
       }
 
-      if (!isLogin && formData.password !== formData.confirmPassword) {
+      if (isSignUp && formData.password !== formData.confirmPassword) {
         throw new Error("Passwords do not match")
       }
 
@@ -155,7 +169,7 @@ export function Auth() {
         throw new Error("Password must be at least 6 characters")
       }
 
-      if (isLogin) {
+      if (!isSignUp) {
         await handleLogin()
       } else {
         await handleSignup()
@@ -179,112 +193,125 @@ export function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>{isLogin ? "Welcome back" : "Create an account"}</CardTitle>
-          <CardDescription>
-            {isLogin
-              ? "Enter your credentials to access your account"
-              : "Enter your details to create your account"}
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="text-sm text-red-500">
-                {error}
+    <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
+      <div className="w-full max-w-sm md:max-w-3xl">
+      <div className={cn("flex flex-col gap-6")}>
+      <Card className="overflow-hidden">
+        <CardContent className="grid p-0 md:grid-cols-2">
+          <form
+          onSubmit={handleSubmit} 
+          className="p-6 md:p-8">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col items-center text-center">
+                <h1 className="text-2xl font-bold">Welcome back</h1>  
+                <p className="text-balance text-muted-foreground">
+                  Login to your screenLog account
+                </p>
               </div>
-            )}
-
-            {!isLogin && (
-              <div className="space-y-2">
-                <label htmlFor="username" className="text-sm font-medium">
-                  Username
-                </label>
-
-                <Input
-                  id="username"
-                  name="username"
-                  type="text"
-                  placeholder="Enter your username"
-                  onChange={handleChange}
-                  value={formData.username}
-                  required
-                />
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                disabled={isLoading}
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                disabled={isLoading}
-              />
-            </div>
-            {!isLogin && (
-              <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium">
-                  Confirm Password
-                </label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>Loading...</>
-              ) : (
-                isLogin ? "Sign in" : "Sign up"
+              {error && (
+                <>
+                  <p className="text-sm text-red-600">{error}</p>
+                </>
               )}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onClick={() => setIsLogin(!isLogin)}
-              disabled={isLoading}
-            >
-              {isLogin
-                ? "Don't have an account? Sign up"
-                : "Already have an account? Sign in"}
-            </Button>
-          </CardFooter>
-        </form>
+              {isSignUp && (
+              <div className="grid gap-2">
+                <Label htmlFor="username">Username</Label>
+                <Input id="username" 
+                onChange = {handleChange}
+                value = {formData.username}
+                name = "username"
+                type="text" placeholder="Enter your username" required />
+              </div>
+              )}
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email"
+                type="email"
+                placeholder="m@example.com"
+                onChange = {handleChange}
+                name = "email"
+                value = {formData.email}
+                required />
+              </div>
+              <div className="grid gap-2">
+                  <Label htmlFor="password">Password</Label>
+                <div className="flex items-center relative">
+                <Input id="password1" 
+                name = "password"
+                type={showPassword? "text" : "password"}
+                required  placeholder="Enter your password"
+                onChange = {handleChange}
+                value = {formData.password}
+                className="relative"/>
+                {showPassword? <FaRegEye 
+                onClick={() => setShowPassword(false)}
+                className="ml-2 cursor-pointer absolute right-4"/> : 
+                <FaRegEyeSlash 
+                onClick={() => setShowPassword(true)} 
+                className="ml-2 cursor-pointer absolute right-4"/>}
+                </div>
+              </div>
+              {isSignUp && (
+              <div className="grid gap-2">
+                  <Label htmlFor="password">Password</Label>
+                <div className="flex items-center relative">
+                <Input id="password2"
+                name = "confirmPassword"
+                onChange = {handleChange}
+                value = {formData.confirmPassword } 
+                type={showPassword? "text" : "password"}
+                required  placeholder="Enter your password"
+                className="relative"/>
+               
+                </div>
+              </div>
+              )}
+              <Button type="submit" className="w-full">
+                Login
+              </Button>
+              <div
+                className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+                <span className="relative z-10 bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+              <div className="">
+                <Button
+                type = "button"
+                onClick = {()=>handleGoogleAuth()} 
+                variant="outline" className="w-full">
+                <FaGoogle />
+                  <span className="sr-only">Login with Google</span>
+                </Button>
+              </div>
+              <div className="text-sm flex justify-center items-center gap-2 ">
+                Don&apos;t have an account?{" "}
+                <div
+                 className="">
+                 <button type="button"
+                 onClick = {()=> setIsSignUp(!isSignUp)}
+                  className="cursor-pointer">
+                  {isSignUp? "Login" : "Sign Up"}
+                 </button>
+                </div>
+              </div>
+            </div>
+          </form>
+          <div className="relative hidden bg-muted md:block">
+            <img
+              src="/placeholder.svg"
+              alt="Image"
+              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale" />
+          </div>
+        </CardContent>
       </Card>
+      <div
+        className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
+        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
+        and <a href="#">Privacy Policy</a>.
+      </div>
+    </div>
+    </div>
     </div>
   )
 } 

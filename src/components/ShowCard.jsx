@@ -20,7 +20,6 @@ const ShowCard = ({ show, isInCollection = false }) => {
       setIsInUserCollection(isInCollection);
       if(isInCollection){
         const userShowStatus = userCollection.find(item => item.imdb_id === show.imdbID);
-        console.log(userShowStatus);
         setSpecificUserShowStatus(userShowStatus);
       }
       // console.log(`Show ${show.Title} (${show.imdbID}) ${isInCollection ? 'is' : 'is not'} in collection`);

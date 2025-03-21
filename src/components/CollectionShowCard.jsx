@@ -73,10 +73,11 @@ const CollectionShowCard = ({ show, userShowData }) => {
           <p>
             {userShowData.rating}
           </p>
-            <Star
+            <Star 
+            className="text-star"
                   style={{
-                  fill: "yellow",
-                  stroke:  "yellow",
+                  fill: "#FFD700",
+                  stroke:  "#FFD700",
                   }}
                   strokeWidth={1.5} size={19}/>
           </div>

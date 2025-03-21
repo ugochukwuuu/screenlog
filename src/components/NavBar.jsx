@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from "react-router-dom"
 import {
   DropdownMenu,
@@ -34,6 +34,10 @@ const NavBar = ({ userData }) => {
     } finally {
       setLoggingOut(false)
     }
+
+    useEffect(()=>{
+
+    },)
   }
 
   return (
@@ -60,19 +64,19 @@ const NavBar = ({ userData }) => {
           
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
-              {userProfile?.username} 
+              {userData?.username} 
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             
             <DropdownMenuItem asChild>
-              <Link to={`/${userProfile?.username}`} className="flex items-center cursor-pointer">
+              <Link to={`/${userData?.username}`} className="flex items-center cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </Link>
             </DropdownMenuItem>
             
             <DropdownMenuItem asChild>
-              <Link to={`/${userProfile?.username}/collections`} className="flex items-center cursor-pointer">
+              <Link to={`/${userData?.username}/collections`} className="flex items-center cursor-pointer">
                 <Library className="mr-2 h-4 w-4" />
                 <span>My Collections</span>
               </Link>

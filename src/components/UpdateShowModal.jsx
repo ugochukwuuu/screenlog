@@ -10,6 +10,7 @@ import {
 import { removeShowFromUsersCollections, updateShowToUsersCollections } from '@/api/movieApi'
 import { UserCollectionContext } from '../App'
 import { statusColors } from "@/constants/colors"
+import { MdCancel } from "react-icons/md";
 
 const UpdateShowModal = ({show, userShowData, setShowModal, userId}) => {
   const [status, setStatus] = useState(userShowData.status)
@@ -109,13 +110,17 @@ const [totalRatings] = useState([1,2,3,4,5])
   }
 
   return (
-    <div className="h-full fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="relative bg-gradient-to-r from-violet-500 to-purple-500 p-6 rounded-lg shadow-2xl w-[400px] flex flex-col items-start mx-2">
+    <div className="h-full fixed inset-0 flex items-center justify-center mx-auto bg-black bg-opacity-50 z-50">
+      <div className="flex items-end flex-col justify-center">
+    <MdCancel 
+    
+        className="cursor-pointer text-white w-6 h-6 hover:text-gray-200 transition-colors"
+        onClick={() => setShowModal(false)}
+      />
+      <div className="relative bg-gradient-to-r from-violet-500 to-purple-500 p-6 rounded-lg shadow-2xl max-w-[400px]  flex flex-col items-start mx-2">
         <div className='flex justify-between w-full'>
           <h1 className="text-3xl font-bold text-white mb-6">{show.title}</h1>
-          <X className="cursor-pointer text-black" onClick={() => setShowModal(false)} size={20}/>
         </div>
-
         <div className="flex items-center flex-wrap justify-between w-full text-white mb-4">
           <DropdownMenu>
             <DropdownMenuTrigger>
@@ -170,8 +175,8 @@ const [totalRatings] = useState([1,2,3,4,5])
                   <Star
                   key={index} 
                   style={{
-                  fill: selectedRating >= item ? "yellow" : "white",
-                  stroke: selectedRating >= item ? "yellow" : "white",
+                  fill: selectedRating >= item ? "#FFD700" : "white",
+                  stroke: selectedRating >= item ? "#FFD700" : "white",
                   }}
                   onClick={()=> handleRatingChange(item)} 
                   strokeWidth={1.5} />
@@ -261,6 +266,7 @@ const [totalRatings] = useState([1,2,3,4,5])
             {isUpdating ? 'Updating...' : 'Update'}
           </Button>
         </div>
+      </div>
       </div>
     </div>
   )
