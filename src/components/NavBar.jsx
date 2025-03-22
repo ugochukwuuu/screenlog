@@ -22,23 +22,42 @@ const NavBar = ({ userData }) => {
   const [isLoggingOut, setLoggingOut] = useState(false);
 
   
-  const handleLogout = async () => {
-    console.log("Logging out...")
-    setLoggingOut(true)
-    try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
-      navigate('/login')
-    } catch (error) {
-      console.error('Error logging out:', error)
-    } finally {
-      setLoggingOut(false)
+  // const handleLogout = async () => {
+  //   console.log("Logging out...")
+  //   setLoggingOut(true)
+  //   try {
+  //     const { error } = await supabase.auth.signOut()
+  //     if (error) throw error
+  //     navigate('/login')
+  //   } catch (error) {
+  //     console.error('Error logging out:', error)
+  //   } finally {
+  //     setLoggingOut(false)
+  //   }
+  // }
+  async function handleLogout() {
+  try {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      console.error('Error fetching session:', sessionError.message);
+      return;
     }
-
-    useEffect(()=>{
-
-    },)
+    if (!session) {
+      console.log('No active session to log out from.');
+      navigate("/login")
+    } else {
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        console.error('Logout failed:', signOutError.message);
+      } else {
+        console.log('Logout successful.');
+        navigate('/login')
+      }
+    }
+  } catch (error) {
+    console.error('Unexpected error during logout:', error.message);
   }
+}
 
   return (
     <nav className="border-b relative">
