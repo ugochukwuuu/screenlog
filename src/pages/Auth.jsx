@@ -37,7 +37,10 @@ export function Auth() {
   const handleGoogleAuth = async ()=>{
     console.log("googling")
     let { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google'
+    provider: 'google',
+    options:{
+        redirectTo: window.location.origin + '/search'
+    }
 })
   }
   const handleLogin = async (e) => {
@@ -59,7 +62,7 @@ export function Auth() {
       .single()
 
     if (userProfile) {
-      navigate(`/${userProfile.username}`)
+      navigate(`/search`)
       setIsLoggingIn(false)
     }
   }
@@ -92,10 +95,10 @@ export function Auth() {
       console.log("Username is available, proceeding with sign up...")
       console.log("Signup payload:", {
         email: formData.email.trim(),
-        password: formData.password,
-        options: {
-          emailRedirectTo: window.location.origin
-        }
+        password: formData.password 
+        // options: {
+        //   emailRedirectTo: window.location.origin
+        // }
       })
 
       let { data, error : signUpError } = await supabase.auth.signUp({
@@ -141,7 +144,7 @@ export function Auth() {
         throw error
       } finally{
         // Navigate to user's profile page after successful signup
-        navigate(`/${formData.username}`)
+        navigate(`/search`)
       }
 
       console.log("Sign up process completed")
